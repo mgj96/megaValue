@@ -1,0 +1,279 @@
+"use client";
+
+import { Tooltip } from "@heroui/react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useMolecule } from "bunshi/react";
+import { identity, pipe } from "fp-ts/lib/function";
+import { useAtom, useAtomValue } from "jotai";
+import { useAtomCallback } from "jotai/utils";
+import { useCallback, useRef, useState } from "react";
+import { useIsomorphicLayoutEffect } from "usehooks-ts";
+
+import {
+  type SimulateStarforceInput,
+  type SimulateStarforceOutput,
+} from "~/app/(starforce-simulator)/sim/starforce/_lib/workers/types";
+import { Potential } from "~/entities/potential";
+import { PotentialQueries } from "~/features/get-potential-data/queries";
+import { E } from "~/shared/fp";
+import { maxFractionDigits, maxFractionDigitsString } from "~/shared/math";
+import { Button } from "~/shared/ui";
+
+import { ItemScouterMolecule } from "../_lib/molecule";
+
+const gradeOrder: Potential.Grade[] = ["RARE", "EPIC", "UNIQUE", "LEGENDARY"];
+
+function expectedCubesWithCeil(probability: number, ceil?: number): number {
+  if (!ceil || ceil <= 0) return 1 / probability;
+  // E[X capped at N] = (1 - (1-p)^N) / p
+  return (1 - Math.pow(1 - probability, ceil)) / probability;
+}
+
+export const CalculateButton = () => {
+  const queryClient = useQueryClient();
+  const maxWorkerCount = useRef(1);
+  const workers = useRef<Worker[]>([]);
+  const localCosts = useRef<number[]>([]);
+  const localDestroyedCounts = useRef<number[]>([]);
+  const finishedWorkerCount = useRef(0);
+  const [progress, setProgress] = useState(0);
+
+  const {
+    sfInputsAtom,
+    sfInputsErrorMessageAtom,
+    potInputsAtom,
+    potInputsErrorMessageAtom,
+    sfCostsAtom,
+    sfDestroyedCountsAtom,
+    sfIsCalculatingAtom,
+    potResultAtom,
+    potIsCalculatingAtom,
+    sfEnabledAtom,
+    potEnabledAtom,
+  } = useMolecule(ItemScouterMolecule);
+
+  const sfEnabled = useAtomValue(sfEnabledAtom);
+  const potEnabled = useAtomValue(potEnabledAtom);
+  const sfInputsErrorMessage = useAtomValue(sfInputsErrorMessageAtom);
+  const potInputsErrorMessage = useAtomValue(potInputsErrorMessageAtom);
+
+  const [sfIsCalculating, setSfIsCalculating] = useAtom(sfIsCalculatingAtom);
+  const [potIsCalculating, setPotIsCalculating] = useAtom(potIsCalculatingAtom);
+  const [, setSfCosts] = useAtom(sfCostsAtom);
+  const [, setSfDestroyedCounts] = useAtom(sfDestroyedCountsAtom);
+  const [, setPotResult] = useAtom(potResultAtom);
+
+  const isCalculating = sfIsCalculating || potIsCalculating;
+
+  const errorMessage =
+    (sfEnabled ? sfInputsErrorMessage : null) ??
+    (potEnabled ? potInputsErrorMessage : null);
+
+  const handleWorkerOutput = useAtomCallback(
+    useCallback(
+      (_, set, output: SimulateStarforceOutput, progressUnit: number) => {
+        if (output.type === "calculating") {
+          setProgress((prev) => Math.min(100, prev + progressUnit));
+        } else {
+          finishedWorkerCount.current += 1;
+          localCosts.current = [...localCosts.current, ...output.costs];
+          localDestroyedCounts.current = [
+            ...localDestroyedCounts.current,
+            ...output.destroyedCounts,
+          ];
+        }
+
+        if (finishedWorkerCount.current === workers.current.length) {
+          localCosts.current.sort((a, b) => a - b);
+          localDestroyedCounts.current.sort((a, b) => a - b);
+          setSfCosts(localCosts.current);
+          setSfDestroyedCounts(localDestroyedCounts.current);
+          setSfIsCalculating(false);
+        }
+      },
+      [setSfCosts, setSfDestroyedCounts, setSfIsCalculating],
+    ),
+  );
+
+  const startStarforceCalc = useAtomCallback(
+    useCallback(
+      (get) => {
+        const inputs = E.getOrElseW(() => null)(get(sfInputsAtom));
+        if (!inputs) return;
+
+        const simulationTotalCount = 100000;
+        const simulationSetCount = Math.min(100, simulationTotalCount);
+        const simulationUnitCount = Math.floor(
+          simulationTotalCount / simulationSetCount,
+        );
+        const progressUnit = maxFractionDigits(2)(100 / simulationSetCount);
+
+        const simulationWorkerSetCount = Math.max(
+          1,
+          Math.floor(simulationSetCount / maxWorkerCount.current),
+        );
+
+        workers.current = Array.from({
+          length: Math.min(maxWorkerCount.current, simulationTotalCount),
+        }).map(
+          () =>
+            new Worker(
+              new URL(
+                "~/app/(starforce-simulator)/sim/starforce/_lib/workers/simulateStarforce.ts",
+                import.meta.url,
+              ),
+            ),
+        );
+
+        workers.current.forEach((worker, index, arr) => {
+          worker.onmessage = (event: MessageEvent<SimulateStarforceOutput>) => {
+            handleWorkerOutput(event.data, progressUnit);
+          };
+
+          worker.postMessage({
+            ...inputs,
+            ...(index === arr.length - 1
+              ? {
+                  simulationTotalCount:
+                    simulationTotalCount -
+                    (arr.length - 1) *
+                      simulationWorkerSetCount *
+                      simulationUnitCount,
+                  simulationSetCount:
+                    simulationSetCount -
+                    (arr.length - 1) * simulationWorkerSetCount,
+                }
+              : {
+                  simulationTotalCount:
+                    simulationWorkerSetCount * simulationUnitCount,
+                  simulationSetCount: simulationWorkerSetCount,
+                }),
+          } satisfies SimulateStarforceInput);
+        });
+      },
+      [handleWorkerOutput, sfInputsAtom],
+    ),
+  );
+
+  const startPotentialCalc = useAtomCallback(
+    useCallback(
+      async (get) => {
+        const inputs = E.getOrElseW(() => null)(get(potInputsAtom));
+        if (!inputs) return;
+
+        const { currentGrade, targetGrade, resetMethod, cubePrice } = inputs;
+
+        const currentIdx = gradeOrder.indexOf(currentGrade);
+        const targetIdx = gradeOrder.indexOf(targetGrade);
+
+        if (currentIdx >= targetIdx) {
+          setPotIsCalculating(false);
+          return;
+        }
+
+        try {
+          const results: { expectedCount: number; expectedCost: number }[] = [];
+
+          for (let i = currentIdx; i < targetIdx; i++) {
+            const grade = gradeOrder[i];
+            const record = await queryClient.fetchQuery(
+              PotentialQueries.useGradeUpRecord.getOptions({
+                method: resetMethod,
+                grade,
+              }),
+            );
+
+            if (!record) continue;
+
+            const expectedCount = expectedCubesWithCeil(
+              record.probability,
+              record.ceil,
+            );
+            results.push({
+              expectedCount,
+              expectedCost: expectedCount * cubePrice,
+            });
+          }
+
+          setPotResult(results);
+        } finally {
+          setPotIsCalculating(false);
+        }
+      },
+      [potInputsAtom, queryClient, setPotIsCalculating, setPotResult],
+    ),
+  );
+
+  const handleCalculate = useAtomCallback(
+    useCallback(
+      (get) => {
+        setProgress(0);
+        finishedWorkerCount.current = 0;
+        localCosts.current = [];
+        localDestroyedCounts.current = [];
+
+        if (sfEnabled) {
+          setSfIsCalculating(true);
+          startStarforceCalc();
+        }
+
+        if (potEnabled) {
+          setPotIsCalculating(true);
+          startPotentialCalc();
+        }
+      },
+      [
+        sfEnabled,
+        potEnabled,
+        setSfIsCalculating,
+        setPotIsCalculating,
+        startStarforceCalc,
+        startPotentialCalc,
+      ],
+    ),
+  );
+
+  const cancelCalculate = () => {
+    workers.current.forEach((w) => w.terminate());
+    setSfIsCalculating(false);
+    setPotIsCalculating(false);
+  };
+
+  useIsomorphicLayoutEffect(() => {
+    maxWorkerCount.current = Math.max(
+      1,
+      Math.floor(navigator.hardwareConcurrency * 0.5),
+    );
+  }, []);
+
+  return (
+    <div className="flex gap-4">
+      <Tooltip
+        content={errorMessage}
+        isDisabled={errorMessage == null}
+      >
+        <Button
+          className="flex-1"
+          color={isCalculating ? "default" : "primary"}
+          size="lg"
+          onPress={() => handleCalculate()}
+          isDisabled={!!errorMessage || isCalculating}
+          isLoading={isCalculating}
+        >
+          {isCalculating
+            ? `계산 중...${sfEnabled ? `${maxFractionDigitsString(0)(progress)}%` : ""}`
+            : "계산하기"}
+        </Button>
+      </Tooltip>
+      <Button
+        className="flex-1"
+        color={isCalculating ? "primary" : "default"}
+        size="lg"
+        onPress={cancelCalculate}
+        isDisabled={!isCalculating}
+      >
+        계산 취소
+      </Button>
+    </div>
+  );
+};

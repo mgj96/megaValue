@@ -19,5 +19,10 @@ export const linkData: Record<string, ComponentProps<typeof NavLink>[]> = {
       Icon: Star,
       children: "스타포스",
     },
+    {
+      href: "/sim/item-scouter",
+      Icon: Star,
+      children: "아이템 스카우터",
+    },
   ],
 };
