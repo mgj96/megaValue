@@ -6,6 +6,7 @@ import { useAtom, useAtomValue } from "jotai";
 import { useState } from "react";
 import { z } from "zod";
 
+import { ItemScouterMolecule } from "~/app/(item-scouter)/sim/item-scouter/_lib/molecule";
 import { Starforce } from "~/entities/starforce";
 import { E } from "~/shared/fp";
 import { keys } from "~/shared/object";
@@ -20,8 +21,6 @@ import {
 } from "~/shared/ui";
 import { SectionSubtitle } from "~/shared/ui/typographies";
 import { parseZod } from "~/shared/zod";
-
-import { ItemScouterMolecule } from "~/app/(item-scouter)/sim/item-scouter/_lib/molecule";
 
 const NONE = "none";
 

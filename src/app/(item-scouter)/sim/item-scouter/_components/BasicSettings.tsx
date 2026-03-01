@@ -5,11 +5,10 @@ import { identity, pipe } from "fp-ts/lib/function";
 import { useAtom } from "jotai";
 import { useState } from "react";
 
+import { ItemScouterMolecule } from "~/app/(item-scouter)/sim/item-scouter/_lib/molecule";
 import { E } from "~/shared/fp";
 import { Input } from "~/shared/ui";
 import { SectionSubtitle } from "~/shared/ui/typographies";
-
-import { ItemScouterMolecule } from "~/app/(item-scouter)/sim/item-scouter/_lib/molecule";
 
 export const BasicSettings = () => {
   const { levelAtom } = useMolecule(ItemScouterMolecule);

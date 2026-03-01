@@ -3,17 +3,16 @@
 import { Tooltip } from "@heroui/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMolecule } from "bunshi/react";
-import { pipe } from "fp-ts/lib/function";
 import { useAtom, useAtomValue } from "jotai";
 import { useAtomCallback } from "jotai/utils";
 import { useCallback, useRef, useState } from "react";
 import { useIsomorphicLayoutEffect } from "usehooks-ts";
 
+import { ItemScouterMolecule } from "~/app/(item-scouter)/sim/item-scouter/_lib/molecule";
 import type {
   SimulateStarforceInput,
   SimulateStarforceOutput,
 } from "~/app/(starforce-simulator)/sim/starforce/_lib/workers/types";
-import { ItemScouterMolecule } from "~/app/(item-scouter)/sim/item-scouter/_lib/molecule";
 import { PotentialQueries } from "~/features/get-potential-data/queries";
 import { E } from "~/shared/fp";
 import { maxFractionDigits, maxFractionDigitsString } from "~/shared/math";
@@ -122,9 +121,7 @@ export const CalculateButton = () => {
             ),
           );
 
-          worker.onmessage = (
-            event: MessageEvent<SimulateStarforceOutput>,
-          ) => {
+          worker.onmessage = (event: MessageEvent<SimulateStarforceOutput>) => {
             handleWorkerOutput(event.data, progressUnit);
           };
 

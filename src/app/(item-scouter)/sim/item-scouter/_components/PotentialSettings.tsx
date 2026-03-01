@@ -6,12 +6,11 @@ import { identity, pipe } from "fp-ts/lib/function";
 import { useAtom } from "jotai";
 import { useState } from "react";
 
+import { ItemScouterMolecule } from "~/app/(item-scouter)/sim/item-scouter/_lib/molecule";
 import { Potential } from "~/entities/potential";
 import { E } from "~/shared/fp";
 import { Input, Radio, RadioGroup, Select } from "~/shared/ui";
 import { SectionSubtitle } from "~/shared/ui/typographies";
-
-import { ItemScouterMolecule } from "~/app/(item-scouter)/sim/item-scouter/_lib/molecule";
 
 export const PotentialSettings = () => {
   const {
@@ -79,7 +78,8 @@ export const PotentialSettings = () => {
               setCurrentGrade(parsed.data);
               // 목표가 현재보다 낮으면 초기화
               if (
-                gradeOrder.indexOf(parsed.data) >= gradeOrder.indexOf(targetGrade)
+                gradeOrder.indexOf(parsed.data) >=
+                gradeOrder.indexOf(targetGrade)
               ) {
                 const newIdx = gradeOrder.indexOf(parsed.data) + 1;
                 if (newIdx < gradeOrder.length) {

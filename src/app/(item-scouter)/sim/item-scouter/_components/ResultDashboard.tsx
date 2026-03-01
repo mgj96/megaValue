@@ -4,14 +4,13 @@ import { Skeleton, Spacer } from "@heroui/react";
 import { useMolecule } from "bunshi/react";
 import { useAtomValue } from "jotai";
 
+import { ItemScouterMolecule } from "~/app/(item-scouter)/sim/item-scouter/_lib/molecule";
 import { ResultChart } from "~/app/(starforce-simulator)/sim/starforce/_components/ResultSectionContent/ResultChart";
 import { TopPercent } from "~/app/(starforce-simulator)/sim/starforce/_components/ResultSectionContent/TopPercent";
 import { Potential } from "~/entities/potential";
 import { putUnit } from "~/shared/number";
 import { cx } from "~/shared/style";
 import { SectionSubtitle } from "~/shared/ui/typographies";
-
-import { ItemScouterMolecule } from "~/app/(item-scouter)/sim/item-scouter/_lib/molecule";
 
 const gradeOrder: Potential.Grade[] = ["RARE", "EPIC", "UNIQUE", "LEGENDARY"];
 
