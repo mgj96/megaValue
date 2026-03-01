@@ -2,6 +2,7 @@ import withBundleAnalyzer from "@next/bundle-analyzer";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: "standalone",
   eslint: {
     dirs: [".", ".storybook"],
   },
@@ -37,6 +38,9 @@ const nextConfig = {
   experimental: {
     swcPlugins: [["@swc-jotai/debug-label", {}]],
     optimizePackageImports: ["@heroui/react", "fp-ts", "zod", "~/shared/ui"],
+    outputFileTracingIncludes: {
+      "/api/**/*": ["./node_modules/.prisma/client/**/*"],
+    },
   },
 };
 
