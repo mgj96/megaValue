@@ -19,7 +19,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Prisma: generate client (DATABASE_URL not used here, only at runtime)
+# Prisma: generate client (DATABASE_URL은 런타임에만 필요)
 RUN npx prisma generate
 
 # Build-time env vars (NEXT_PUBLIC_* 는 빌드 시 번들에 포함됨)
@@ -52,16 +52,25 @@ ENV NODE_ENV=production \
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
-# standalone 빌드 결과물 복사
+# standalone 빌드 결과물
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Prisma 네이티브 바이너리 (standalone이 자동 추적 못하는 경우 대비)
+# Prisma 런타임 클라이언트 (네이티브 바이너리)
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
+
+# Prisma CLI + 스키마 (컨테이너 시작 시 db push 실행용)
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/prisma ./node_modules/prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+
+# 엔트리포인트
+COPY --chown=nextjs:nodejs docker-entrypoint.sh ./
+RUN chmod +x docker-entrypoint.sh
 
 USER nextjs
 
 EXPOSE 3000
 
-CMD ["node", "server.js"]
+ENTRYPOINT ["./docker-entrypoint.sh"]

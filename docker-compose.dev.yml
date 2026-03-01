@@ -15,3 +15,10 @@ services:
       NODE_ENV: development
     ports:
       - "${PORT:-3000}:3000"
+
+  db:
+    ports:
+      - "5432:5432"         # 로컬 DB 클라이언트 직접 접근 허용
+    healthcheck:
+      start_period: 5s
+      interval: 10s
