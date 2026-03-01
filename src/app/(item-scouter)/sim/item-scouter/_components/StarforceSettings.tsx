@@ -21,7 +21,7 @@ import {
 import { SectionSubtitle } from "~/shared/ui/typographies";
 import { parseZod } from "~/shared/zod";
 
-import { ItemScouterMolecule } from "../_lib/molecule";
+import { ItemScouterMolecule } from "~/app/(item-scouter)/sim/item-scouter/_lib/molecule";
 
 const NONE = "none";
 
@@ -54,7 +54,10 @@ export const StarforceSettings = () => {
   const [shouldSelectAllStarcatch, setShouldSelectAllStarcatch] =
     useState(true);
 
-  const levelValue = pipe(level.value, E.getOrElse(() => 200));
+  const levelValue = pipe(
+    level.value,
+    E.getOrElse(() => 200),
+  );
   const reachableStar = Starforce.getReachableStar(levelValue);
 
   const currentStarError = pipe(

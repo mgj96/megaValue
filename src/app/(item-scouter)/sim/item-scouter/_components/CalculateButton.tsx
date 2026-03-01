@@ -3,25 +3,23 @@
 import { Tooltip } from "@heroui/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMolecule } from "bunshi/react";
-import { identity, pipe } from "fp-ts/lib/function";
+import { pipe } from "fp-ts/lib/function";
 import { useAtom, useAtomValue } from "jotai";
 import { useAtomCallback } from "jotai/utils";
 import { useCallback, useRef, useState } from "react";
 import { useIsomorphicLayoutEffect } from "usehooks-ts";
 
-import {
-  type SimulateStarforceInput,
-  type SimulateStarforceOutput,
+import type {
+  SimulateStarforceInput,
+  SimulateStarforceOutput,
 } from "~/app/(starforce-simulator)/sim/starforce/_lib/workers/types";
-import { Potential } from "~/entities/potential";
+import { ItemScouterMolecule } from "~/app/(item-scouter)/sim/item-scouter/_lib/molecule";
 import { PotentialQueries } from "~/features/get-potential-data/queries";
 import { E } from "~/shared/fp";
 import { maxFractionDigits, maxFractionDigitsString } from "~/shared/math";
 import { Button } from "~/shared/ui";
 
-import { ItemScouterMolecule } from "../_lib/molecule";
-
-const gradeOrder: Potential.Grade[] = ["RARE", "EPIC", "UNIQUE", "LEGENDARY"];
+const gradeOrder = ["RARE", "EPIC", "UNIQUE", "LEGENDARY"] as const;
 
 function expectedCubesWithCeil(probability: number, ceil?: number): number {
   if (!ceil || ceil <= 0) return 1 / probability;
@@ -113,20 +111,20 @@ export const CalculateButton = () => {
           Math.floor(simulationSetCount / maxWorkerCount.current),
         );
 
+        // map으로 생성+설정을 한 번에 처리 (no-param-reassign 방지)
         workers.current = Array.from({
           length: Math.min(maxWorkerCount.current, simulationTotalCount),
-        }).map(
-          () =>
-            new Worker(
-              new URL(
-                "~/app/(starforce-simulator)/sim/starforce/_lib/workers/simulateStarforce.ts",
-                import.meta.url,
-              ),
+        }).map((_, index, arr) => {
+          const worker = new Worker(
+            new URL(
+              "~/app/(starforce-simulator)/sim/starforce/_lib/workers/simulateStarforce.ts",
+              import.meta.url,
             ),
-        );
+          );
 
-        workers.current.forEach((worker, index, arr) => {
-          worker.onmessage = (event: MessageEvent<SimulateStarforceOutput>) => {
+          worker.onmessage = (
+            event: MessageEvent<SimulateStarforceOutput>,
+          ) => {
             handleWorkerOutput(event.data, progressUnit);
           };
 
@@ -149,6 +147,8 @@ export const CalculateButton = () => {
                   simulationSetCount: simulationWorkerSetCount,
                 }),
           } satisfies SimulateStarforceInput);
+
+          return worker;
         });
       },
       [handleWorkerOutput, sfInputsAtom],
@@ -206,7 +206,7 @@ export const CalculateButton = () => {
 
   const handleCalculate = useAtomCallback(
     useCallback(
-      (get) => {
+      (_get) => {
         setProgress(0);
         finishedWorkerCount.current = 0;
         localCosts.current = [];
@@ -248,10 +248,7 @@ export const CalculateButton = () => {
 
   return (
     <div className="flex gap-4">
-      <Tooltip
-        content={errorMessage}
-        isDisabled={errorMessage == null}
-      >
+      <Tooltip content={errorMessage} isDisabled={errorMessage == null}>
         <Button
           className="flex-1"
           color={isCalculating ? "default" : "primary"}

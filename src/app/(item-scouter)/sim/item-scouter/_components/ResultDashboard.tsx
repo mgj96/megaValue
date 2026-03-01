@@ -11,7 +11,7 @@ import { putUnit } from "~/shared/number";
 import { cx } from "~/shared/style";
 import { SectionSubtitle } from "~/shared/ui/typographies";
 
-import { ItemScouterMolecule } from "../_lib/molecule";
+import { ItemScouterMolecule } from "~/app/(item-scouter)/sim/item-scouter/_lib/molecule";
 
 const gradeOrder: Potential.Grade[] = ["RARE", "EPIC", "UNIQUE", "LEGENDARY"];
 
@@ -89,7 +89,10 @@ export const ResultDashboard = () => {
               {sfIsCalculating || !isHighchartsLoaded ? (
                 <Skeleton className="m-2 h-full w-full rounded-2xl" />
               ) : sfResultExists ? (
-                <ResultChart dataAtom={sfDestroyedCountsAtom} type="destroyedCount" />
+                <ResultChart
+                  dataAtom={sfDestroyedCountsAtom}
+                  type="destroyedCount"
+                />
               ) : (
                 <p className="text-default-400">
                   계산하기 버튼을 눌러 시뮬레이션을 시작하세요.
@@ -98,7 +101,10 @@ export const ResultDashboard = () => {
             </div>
             <Spacer y={2} />
             {sfResultExists && (
-              <TopPercent dataAtom={sfDestroyedCountsAtom} type="destroyedCount" />
+              <TopPercent
+                dataAtom={sfDestroyedCountsAtom}
+                type="destroyedCount"
+              />
             )}
           </div>
         </>

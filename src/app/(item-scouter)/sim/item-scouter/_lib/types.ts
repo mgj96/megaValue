@@ -1,5 +1,5 @@
-import { type Starforce } from "~/entities/starforce";
 import { type Potential } from "~/entities/potential";
+import { type Starforce } from "~/entities/starforce";
 
 export type ItemScouterResult = {
   starforce: number[] | null; // sorted costs from simulation

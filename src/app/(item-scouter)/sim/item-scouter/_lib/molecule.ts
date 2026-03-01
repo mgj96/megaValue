@@ -5,8 +5,8 @@ import { flow, identity, pipe } from "fp-ts/lib/function";
 import { atom } from "jotai";
 import { z } from "zod";
 
-import { Potential } from "~/entities/potential";
-import { Starforce } from "~/entities/starforce";
+import type { Potential } from "~/entities/potential";
+import type { Starforce } from "~/entities/starforce";
 import { E, O } from "~/shared/fp";
 import { convertToNumber } from "~/shared/number";
 import { type FormPayload } from "~/shared/react";

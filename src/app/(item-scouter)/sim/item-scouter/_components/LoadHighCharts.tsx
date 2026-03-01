@@ -5,7 +5,7 @@ import { useSetAtom } from "jotai";
 import Script from "next/script";
 import { useEffect, useState } from "react";
 
-import { ItemScouterMolecule } from "../_lib/molecule";
+import { ItemScouterMolecule } from "~/app/(item-scouter)/sim/item-scouter/_lib/molecule";
 
 export const LoadHighCharts = () => {
   const { isHighchartsLoadedAtom } = useMolecule(ItemScouterMolecule);
