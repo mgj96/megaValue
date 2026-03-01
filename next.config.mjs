@@ -35,12 +35,12 @@ const nextConfig = {
     return config;
   },
 
+  outputFileTracingIncludes: {
+    "/api/**/*": ["./node_modules/.prisma/client/**/*"],
+  },
   experimental: {
     swcPlugins: [["@swc-jotai/debug-label", {}]],
     optimizePackageImports: ["@heroui/react", "fp-ts", "zod", "~/shared/ui"],
-    outputFileTracingIncludes: {
-      "/api/**/*": ["./node_modules/.prisma/client/**/*"],
-    },
   },
 };
 

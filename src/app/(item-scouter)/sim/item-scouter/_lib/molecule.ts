@@ -6,7 +6,7 @@ import { atom } from "jotai";
 import { z } from "zod";
 
 import type { Potential } from "~/entities/potential";
-import type { Starforce } from "~/entities/starforce";
+import { Starforce } from "~/entities/starforce";
 import { E, O } from "~/shared/fp";
 import { convertToNumber } from "~/shared/number";
 import { type FormPayload } from "~/shared/react";
