@@ -16,6 +16,20 @@ services:
       start_period: 10s
     restart: unless-stopped
 
+  # ─── Prisma DB 스키마 동기화 (일회성) ────────────────────────────────────
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder          # pnpm + 전체 node_modules 있는 빌더 스테이지
+    command: npx prisma db push --skip-generate
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-mesulive}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-mesulive}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
   # ─── Next.js App ──────────────────────────────────────────────────────────
   app:
     image: ${DOCKER_REGISTRY:-mesulive}/app:${IMAGE_TAG:-latest}
@@ -31,10 +45,12 @@ services:
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-mesulive}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-mesulive}
     ports:
-      - "${PORT:-3000}:3000"
+      - "${PORT:-3001}:3000"
     depends_on:
       db:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     restart: unless-stopped
 
 volumes:

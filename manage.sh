@@ -106,11 +106,12 @@ cmd_status() {
   dc ps
 }
 
-## migrate ─ Prisma 마이그레이션
+## migrate ─ Prisma DB 스키마 동기화 (db push)
 cmd_migrate() {
   check_env
-  step "Prisma 마이그레이션 실행"
-  dc exec app npx prisma migrate deploy
+  step "Prisma DB 스키마 동기화"
+  dc up -d db
+  dc run --rm migrate
   success "마이그레이션 완료"
 }
 

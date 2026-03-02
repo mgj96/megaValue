@@ -16,6 +16,9 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
 FROM base AS builder
 WORKDIR /app
 
+# Prisma 바이너리 실행에 필요한 OpenSSL (prisma db push / generate 시 사용)
+RUN apk add --no-cache openssl
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
@@ -40,6 +43,12 @@ ENV DATABASE_URL=$DATABASE_URL \
 
 RUN pnpm build
 
+# pnpm 가상 스토어의 .prisma 클라이언트를 표준 경로로 복사
+# (runner 이미지에서 COPY 시 실제 파일이 필요)
+RUN PRISMA_DIR=$(find /app/node_modules/.pnpm -name ".prisma" -type d 2>/dev/null | head -1) && \
+    [ -n "$PRISMA_DIR" ] && cp -r "$PRISMA_DIR" /app/node_modules/ || \
+    (echo "ERROR: .prisma not found!" && exit 1)
+
 # ─── 4. Runner ────────────────────────────────────────────────────────────────
 FROM node:20-alpine AS runner
 WORKDIR /app
@@ -48,6 +57,9 @@ ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     PORT=3000 \
     HOSTNAME="0.0.0.0"
+
+# Prisma 네이티브 바이너리 실행에 필요한 OpenSSL (Alpine)
+RUN apk add --no-cache openssl
 
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
@@ -58,12 +70,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 # Prisma 런타임 클라이언트 (네이티브 바이너리)
+# builder 단계에서 표준 경로로 복사해뒀으므로 실제 파일이 복사됨
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
-
-# Prisma CLI + 스키마 (컨테이너 시작 시 db push 실행용)
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/prisma ./node_modules/prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 
 # 엔트리포인트
 COPY --chown=nextjs:nodejs docker-entrypoint.sh ./
