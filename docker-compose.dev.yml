@@ -1,0 +1,24 @@
+# 개발 모드 오버라이드
+# 사용법: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+#         또는: ./manage.sh dev
+
+services:
+  app:
+    build:
+      target: deps          # node_modules만 설치, 빌드 생략
+    command: pnpm dev:next
+    volumes:
+      - .:/app              # 소스코드 실시간 반영
+      - /app/node_modules   # 컨테이너 node_modules 보존 (host와 충돌 방지)
+      - /app/.next          # .next 캐시 보존
+    environment:
+      NODE_ENV: development
+    ports:
+      - "${PORT:-3000}:3000"
+
+  db:
+    ports:
+      - "5432:5432"         # 로컬 DB 클라이언트 직접 접근 허용
+    healthcheck:
+      start_period: 5s
+      interval: 10s

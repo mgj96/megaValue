@@ -1,0 +1,57 @@
+services:
+  # ─── PostgreSQL ───────────────────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-mesulive}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:-mesulive}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mesulive} -d ${POSTGRES_DB:-mesulive}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  # ─── Prisma DB 스키마 동기화 (일회성) ────────────────────────────────────
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder          # pnpm + 전체 node_modules 있는 빌더 스테이지
+    command: npx prisma db push --skip-generate
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-mesulive}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-mesulive}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  # ─── Next.js App ──────────────────────────────────────────────────────────
+  app:
+    image: ${DOCKER_REGISTRY:-mesulive}/app:${IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        GOOGLE_ADS_TXT_CONTENT: ${GOOGLE_ADS_TXT_CONTENT:-}
+        NEXT_PUBLIC_POTENTIAL_DATA_VERSION: ${NEXT_PUBLIC_POTENTIAL_DATA_VERSION:-1}
+        NEXT_PUBLIC_LOG_VERSION: ${NEXT_PUBLIC_LOG_VERSION:-1}
+        NEXT_PUBLIC_GOOGLE_ADSENSE_ACCOUNT: ${NEXT_PUBLIC_GOOGLE_ADSENSE_ACCOUNT:-}
+        GA4_ID: ${GA4_ID:-}
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-mesulive}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-mesulive}
+    ports:
+      - "${PORT:-3001}:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
