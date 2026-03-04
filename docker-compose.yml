@@ -45,7 +45,7 @@ services:
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-mesulive}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-mesulive}
     ports:
-      - "${PORT:-3001}:3000"
+      - "${PORT:-3000}:3000"
     depends_on:
       db:
         condition: service_healthy
