@@ -317,9 +317,40 @@ const itemScouterMoleculeConstructor = ((_, scope) => {
 
   const isHighchartsLoadedAtom = atom(false);
 
+  // ─── 장비 타입 (scroll/potential 세부 설정에 활용) ───────────────
+  const itemTypeAtom = atom<"방어구" | "장신구">("방어구");
+
+  // ─── SF 분위수 파생 (luck 슬라이더용) ───────────────────────────
+  const sfCostStatsAtom = atom((get) => {
+    const costs = get(sfCostsAtom);
+    if (costs.length === 0) return null;
+    return {
+      p10: costs[Math.floor(costs.length * 0.1)] ?? 0,
+      p50: costs[Math.floor(costs.length * 0.5)] ?? 0,
+      p90: costs[Math.floor(costs.length * 0.9)] ?? 0,
+    };
+  });
+
+  // ─── Potential 결과 총합 ─────────────────────────────────────────
+  const potTotalCostAtom = atom((get) => {
+    const result = get(potResultAtom);
+    return result?.reduce((sum, r) => sum + r.expectedCost, 0) ?? null;
+  });
+
+  // ─── 잠재능력 모드 (등급업 / 등급업 띄우기) ─────────────────────
+  const potModeAtom = atom<"GRADE_UP" | "GRADE_FLOAT">("GRADE_UP");
+
+  // ─── 잠재능력 저격 라인 (세부 설정) ─────────────────────────────
+  const mainLinesAtom = atom<string[]>([]);
+  const addiLinesAtom = atom<string[]>([]);
+
+  // ─── 주흔작 종류 ─────────────────────────────────────────────────
+  const scrollTypeAtom = atom<"미사용" | "70%" | "30%" | "15%">("미사용");
+
   return {
     // 공통
     levelAtom,
+    itemTypeAtom,
     sfEnabledAtom,
     potEnabledAtom,
     isHighchartsLoadedAtom,
@@ -337,6 +368,7 @@ const itemScouterMoleculeConstructor = ((_, scope) => {
     sfCostsAtom,
     sfDestroyedCountsAtom,
     sfResultExistsAtom,
+    sfCostStatsAtom,
     // 잠재능력
     potTypeAtom,
     potCurrentGradeAtom,
@@ -347,6 +379,11 @@ const itemScouterMoleculeConstructor = ((_, scope) => {
     potInputsErrorMessageAtom,
     potResultAtom,
     potIsCalculatingAtom,
+    potTotalCostAtom,
+    potModeAtom,
+    mainLinesAtom,
+    addiLinesAtom,
+    scrollTypeAtom,
   };
 }) satisfies MoleculeConstructor<unknown>;
 

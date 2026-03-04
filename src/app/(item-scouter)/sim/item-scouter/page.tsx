@@ -4,7 +4,7 @@ import { Notice } from "~/app/_components";
 import { ScopeProvider } from "~/app/_components/providers";
 import { PageTitle } from "~/shared/ui";
 
-import { LoadHighCharts } from "./_components/LoadHighCharts";
+
 import { PageContent } from "./_components/PageContent";
 import { ItemScouterScope } from "./_lib/scopes";
 
@@ -35,7 +35,6 @@ export default function Page() {
         <Notice />
         <PageContent />
       </div>
-      <LoadHighCharts />
     </ScopeProvider>
   );
 }

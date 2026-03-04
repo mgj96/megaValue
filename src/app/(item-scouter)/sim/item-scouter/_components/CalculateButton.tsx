@@ -12,7 +12,7 @@ import { ItemScouterMolecule } from "~/app/(item-scouter)/sim/item-scouter/_lib/
 import type {
   SimulateStarforceInput,
   SimulateStarforceOutput,
-} from "~/app/(starforce-simulator)/sim/starforce/_lib/workers/types";
+} from "~/entities/starforce/workers/types";
 import { PotentialQueries } from "~/features/get-potential-data/queries";
 import { E } from "~/shared/fp";
 import { maxFractionDigits, maxFractionDigitsString } from "~/shared/math";
@@ -116,7 +116,7 @@ export const CalculateButton = () => {
         }).map((_, index, arr) => {
           const worker = new Worker(
             new URL(
-              "~/app/(starforce-simulator)/sim/starforce/_lib/workers/simulateStarforce.ts",
+              "~/entities/starforce/workers/simulateStarforce.ts",
               import.meta.url,
             ),
           );
@@ -244,30 +244,31 @@ export const CalculateButton = () => {
   }, []);
 
   return (
-    <div className="flex gap-4">
+    <div className="flex items-center gap-2">
       <Tooltip content={errorMessage} isDisabled={errorMessage == null}>
         <Button
-          className="flex-1"
           color={isCalculating ? "default" : "primary"}
-          size="lg"
+          size="md"
           onPress={() => handleCalculate()}
           isDisabled={!!errorMessage || isCalculating}
           isLoading={isCalculating}
+          startContent={!isCalculating ? <span>↗</span> : undefined}
         >
           {isCalculating
             ? `계산 중...${sfEnabled ? `${maxFractionDigitsString(0)(progress)}%` : ""}`
-            : "계산하기"}
+            : "시뮬레이션 시작"}
         </Button>
       </Tooltip>
-      <Button
-        className="flex-1"
-        color={isCalculating ? "primary" : "default"}
-        size="lg"
-        onPress={cancelCalculate}
-        isDisabled={!isCalculating}
-      >
-        계산 취소
-      </Button>
+      {isCalculating && (
+        <Button
+          size="md"
+          variant="flat"
+          color="default"
+          onPress={cancelCalculate}
+        >
+          취소
+        </Button>
+      )}
     </div>
   );
 };
