@@ -18,19 +18,22 @@ export const SimulationCountInput = () => {
   );
 
   return (
-    <Input
-      label="시뮬레이션 횟수"
-      type="number"
-      value={simulationCount.input}
-      onValueChange={(value) => {
-        setSimulationCount(value);
-      }}
-      isInvalid={!!errorMessage}
-      errorMessage={errorMessage}
-      description={pipe(
-        simulationCount.value,
-        E.matchW(() => undefined, putUnit),
-      )}
-    />
+    <div className="flex flex-col gap-0.5">
+      <span className="text-sm text-foreground">시뮬레이션 횟수</span>
+      <Input
+        type="text"
+        inputMode="numeric"
+        value={simulationCount.input}
+        onValueChange={(value) => {
+          setSimulationCount(value);
+        }}
+        isInvalid={!!errorMessage}
+        errorMessage={errorMessage}
+        description={pipe(
+          simulationCount.value,
+          E.matchW(() => undefined, putUnit),
+        )}
+      />
+    </div>
   );
 };

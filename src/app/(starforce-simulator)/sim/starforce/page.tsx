@@ -6,7 +6,6 @@ import { ScopeProvider } from "~/app/_components/providers";
 import { cx } from "~/shared/style";
 import { PageTitle } from "~/shared/ui";
 
-import { LoadHighCharts } from "./_components/LoadHighCharts";
 import { PageContent } from "./_components/PageContent";
 import { StarforceSimulatorScope } from "./_lib/molecule";
 
@@ -39,7 +38,6 @@ export default function Page() {
         <Notice />
         <PageContent />
       </div>
-      <LoadHighCharts />
     </ScopeProvider>
   );
 }

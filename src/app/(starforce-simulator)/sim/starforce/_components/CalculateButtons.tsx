@@ -9,7 +9,7 @@ import { StarforceSimulatorMolecule } from "~/app/(starforce-simulator)/sim/star
 import {
   type SimulateStarforceOutput,
   type SimulateStarforceInput,
-} from "~/app/(starforce-simulator)/sim/starforce/_lib/workers/types";
+} from "~/entities/starforce/workers/types";
 import { E } from "~/shared/fp";
 import { maxFractionDigits, maxFractionDigitsString } from "~/shared/math";
 import { Button } from "~/shared/ui";
@@ -90,7 +90,7 @@ export const CalculateButtons = () => {
             () =>
               new Worker(
                 new URL(
-                  "~/app/(starforce-simulator)/sim/starforce/_lib/workers/simulateStarforce.ts",
+                  "../../../../../entities/starforce/workers/simulateStarforce.ts",
                   import.meta.url,
                 ),
               ),

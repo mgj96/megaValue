@@ -1,7 +1,7 @@
 import { semanticColors } from "@heroui/react";
 import type Highcharts from "highcharts";
 import { type Atom, useAtomValue } from "jotai";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 import { putUnit } from "~/shared/number";
 import { primary, secondary } from "~/shared/style/colors";
@@ -215,10 +215,50 @@ export const ResultChart = ({ dataAtom, type }: Props) => {
     };
   }, [rawData, simulationCount, type]);
 
+  const chartRef = useRef<Highcharts.Chart | null>(null);
+
   useEffect(() => {
-    if (rawData.length > 0) {
-      window.Highcharts.chart(chartContainerId, options);
-    }
+    if (rawData.length === 0) return;
+
+    let isMounted = true;
+
+    const loadChart = async () => {
+      // 1. 동적 import로 로컬 npm 모듈에서 Highcharts 호출
+      const Highcharts = (await import("highcharts")).default;
+
+      const HC_bellcurve = (
+        await import("highcharts/modules/histogram-bellcurve")
+      ).default;
+
+      if (!isMounted) return;
+
+      // 2. 모듈 초기화 (초기화되지 않은 경우만)
+
+      if (
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        !(Highcharts as any).seriesTypes ||
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        !(Highcharts as any).seriesTypes.histogram
+      ) {
+        HC_bellcurve(Highcharts);
+      }
+
+      // 3. 차트 렌더링
+      if (chartRef.current) {
+        chartRef.current.destroy();
+      }
+      chartRef.current = Highcharts.chart(chartContainerId, options);
+    };
+
+    loadChart();
+
+    return () => {
+      isMounted = false;
+      if (chartRef.current) {
+        chartRef.current.destroy();
+        chartRef.current = null;
+      }
+    };
   }, [chartContainerId, options, rawData.length]);
 
   return <div className="h-[400px]" id={chartContainerId}></div>;

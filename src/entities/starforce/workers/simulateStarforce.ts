@@ -1,5 +1,3 @@
-"use client";
-
 import { identity } from "fp-ts/lib/function";
 
 import { Starforce } from "~/entities/starforce";
@@ -87,13 +85,12 @@ addEventListener(
           } else {
             let result = probabilities.length - 1;
             let r = Math.random();
-            // console.log(r);
-            for (let i = 0; i < probabilities.length; i++) {
-              if (r < probabilities[i]) {
-                result = i;
+            for (let j = 0; j < probabilities.length; j++) {
+              if (r < probabilities[j]) {
+                result = j;
                 break;
               }
-              r -= probabilities[i];
+              r -= probabilities[j];
             }
 
             if (result === Starforce.PROB_TABLE_SUCCESS_INDEX) {
