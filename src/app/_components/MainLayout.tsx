@@ -6,7 +6,6 @@ import { cx } from "~/shared/style";
 
 import { Footer } from "./Footer";
 import { Header } from "./Header";
-import { Sidebar } from "./Sidebar";
 
 interface Props {
   children?: ReactNode;
@@ -20,7 +19,6 @@ export const MainLayout = ({ children, disableFooter }: Props) => {
     <div className="flex h-screen max-h-screen flex-col">
       <Header parentRef={ref} />
       <div className="relative flex h-0 flex-1">
-        <Sidebar />
         <div
           ref={ref}
           className="mt-[-65px] h-screen flex-1 overflow-y-auto bg-default-50 pt-[65px]"

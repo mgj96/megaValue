@@ -11,14 +11,31 @@ export const Input = forwardRef<
   const ref = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    ref.current?.addEventListener(
-      "wheel",
-      (e) => {
-        e.preventDefault();
-      },
-      { passive: false },
-    );
+    const el = ref.current;
+    if (!el) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+    };
+    const handleFocus = () => {
+      el.select();
+    };
+
+    el.addEventListener("wheel", handleWheel, { passive: false });
+    el.addEventListener("focus", handleFocus);
+
+    return () => {
+      el.removeEventListener("wheel", handleWheel);
+      el.removeEventListener("focus", handleFocus);
+    };
   }, []);
 
-  return <InputOrig {...props} ref={mergeRefs(ref, _ref)} />;
+  return (
+    <InputOrig
+      labelPlacement="outside"
+      placeholder=" "
+      {...props}
+      ref={mergeRefs(ref, _ref)}
+    />
+  );
 });

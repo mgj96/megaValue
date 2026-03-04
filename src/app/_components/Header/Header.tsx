@@ -5,8 +5,6 @@ import { type RefObject } from "react";
 import { Logo } from "~/shared/assets/images";
 import { cx } from "~/shared/style";
 
-import { MenuButton } from "./MenuButton";
-
 interface Props {
   parentRef: RefObject<HTMLElement>;
 }
@@ -21,7 +19,6 @@ export const Header = ({ parentRef }: Props) => {
       shouldHideOnScroll
       parentRef={parentRef}
     >
-      <MenuButton />
       <Link as={NextLink} prefetch={false} href="/" className="ml-2">
         <Logo className="h-6 md:h-8" />
       </Link>

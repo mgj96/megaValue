@@ -1,5 +1,4 @@
 import { GoogleAnalytics } from "@next/third-parties/google";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 
@@ -57,7 +56,7 @@ export default function RootLayout({
             </HeroUIProvider>
           </JotaiProvider>
         </MotionProvider>
-        <SpeedInsights />
+
         <Script
           src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-${process.env.NEXT_PUBLIC_GOOGLE_ADSENSE_ACCOUNT}`}
           async
