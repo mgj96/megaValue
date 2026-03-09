@@ -2,7 +2,7 @@ import { Link, Navbar } from "@heroui/react";
 import NextLink from "next/link";
 import { type RefObject } from "react";
 
-import { Logo } from "~/shared/assets/images";
+import Image from "next/image";
 import { cx } from "~/shared/style";
 
 interface Props {
@@ -19,8 +19,8 @@ export const Header = ({ parentRef }: Props) => {
       shouldHideOnScroll
       parentRef={parentRef}
     >
-      <Link as={NextLink} prefetch={false} href="/" className="ml-2">
-        <Logo className="h-6 md:h-8" />
+      <Link as={NextLink} prefetch={false} href="/" className="ml-2 flex items-center gap-2">
+        <Image src="/logo.png" alt="Maple Upgrade Companion" width={200} height={40} className="h-8 md:h-10 w-auto object-contain" />
       </Link>
     </Navbar>
   );
