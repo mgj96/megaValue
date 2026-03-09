@@ -1,4 +1,4 @@
-"use client";
+깁"use client";
 
 import { Tabs, Tab } from "@heroui/react";
 import { useMolecule } from "bunshi/react";
@@ -16,6 +16,7 @@ import {
 } from "./PotentialLineInputSection";
 import { getAvailableStatOptions, type StatOption } from "./potential-logic";
 import { PotentialTypeRadioGroup } from "./PotentialTypeRadioGroup";
+import { TestValueInjector } from "../TestValueInjector";
 
 const EMPTY_LINES: PotLine[] = [
   { statType: "", value: "" },
@@ -71,6 +72,23 @@ export const PotentialSettingsSectionContent = () => {
     setAddiLines([]);
   }
 
+  function injectPotentialTestLines() {
+    const mainLines: PotLine[] = [
+      { statType: "STR" as StatOption, value: "12" },
+      { statType: "STR" as StatOption, value: "9" },
+      { statType: "" as StatOption, value: "" },
+    ];
+    setMainLineInputs(mainLines);
+    setMainLines(formatLines(mainLines));
+    
+    // 밑잠은 비워둠 (요청사항 기반)
+    setAddiLineInputs(EMPTY_LINES);
+    setAddiLines([]);
+    
+    // 주입 후 옵션 탭으로 이동하여 확인하기 편하게 함
+    setSelectedTab("OPTION");
+  }
+
   useEffect(() => {
     setMainLineInputs((prev) => {
       let changed = false;
@@ -115,14 +133,17 @@ export const PotentialSettingsSectionContent = () => {
             {equipPart} 기준
           </span>
         </div>
-        <Button
-          size="sm"
-          variant="light"
-          color="danger"
-          onPress={resetDetailLines}
-        >
-          초기화
-        </Button>
+        <div className="flex items-center gap-2">
+          <TestValueInjector onInjected={injectPotentialTestLines} />
+          <Button
+            size="sm"
+            variant="light"
+            color="danger"
+            onPress={resetDetailLines}
+          >
+            초기화
+          </Button>
+        </div>
       </div>
 
       <div className="flex w-full flex-col -mt-2">
