@@ -6,6 +6,7 @@ import { atom } from "jotai";
 import { z } from "zod";
 
 import type { Potential } from "~/entities/potential";
+import type { Equip } from "~/entities/equip";
 import { Starforce } from "~/entities/starforce";
 import { E, O } from "~/shared/fp";
 import { convertToNumber } from "~/shared/number";
@@ -314,11 +315,12 @@ const itemScouterMoleculeConstructor = ((_, scope) => {
 
   const sfEnabledAtom = atom(true);
   const potEnabledAtom = atom(true);
+  const scrollEnabledAtom = atom((get) => get(scrollTypeAtom) !== "미사용");
 
   const isHighchartsLoadedAtom = atom(false);
 
-  // ─── 장비 타입 (scroll/potential 세부 설정에 활용) ───────────────
-  const itemTypeAtom = atom<"방어구" | "장신구">("방어구");
+  // ─── 장비 타입 (scroll/potential/bonus 세부 설정에 활용) ───────────────
+  const equipPartAtom = atom<Equip>("무기");
 
   // ─── SF 분위수 파생 (luck 슬라이더용) ───────────────────────────
   const sfCostStatsAtom = atom((get) => {
@@ -331,14 +333,22 @@ const itemScouterMoleculeConstructor = ((_, scope) => {
     };
   });
 
-  // ─── Potential 결과 총합 ─────────────────────────────────────────
+  // ─── Potential 결과 ───────────────────────────────────────────────
   const potTotalCostAtom = atom((get) => {
     const result = get(potResultAtom);
     return result?.reduce((sum, r) => sum + r.expectedCost, 0) ?? null;
   });
-
-  // ─── 잠재능력 모드 (등급업 / 등급업 띄우기) ─────────────────────
-  const potModeAtom = atom<"GRADE_UP" | "GRADE_FLOAT">("GRADE_UP");
+  
+  const potCostsAtom = atom<number[]>([]);
+  const potCostStatsAtom = atom((get) => {
+    const costs = get(potCostsAtom);
+    if (costs.length === 0) return null;
+    return {
+      p10: costs[Math.floor(costs.length * 0.1)] ?? 0,
+      p50: costs[Math.floor(costs.length * 0.5)] ?? 0,
+      p90: costs[Math.floor(costs.length * 0.9)] ?? 0,
+    };
+  });
 
   // ─── 잠재능력 저격 라인 (세부 설정) ─────────────────────────────
   const mainLinesAtom = atom<string[]>([]);
@@ -347,10 +357,133 @@ const itemScouterMoleculeConstructor = ((_, scope) => {
   // ─── 주흔작 종류 ─────────────────────────────────────────────────
   const scrollTypeAtom = atom<"미사용" | "70%" | "30%" | "15%">("미사용");
 
+  const _scrollTracePriceAtom = atom<FormPayload<number>>({
+    input: "2000",
+    value: E.of(2000),
+  });
+  const scrollTracePriceAtom = atom(
+    (get) => get(_scrollTracePriceAtom),
+    (_get, set, input: string) => {
+      set(_scrollTracePriceAtom, {
+        input,
+        value: pipe(
+          input,
+          E.fromPredicate(
+            (s) => s !== "",
+            () => "주문의 흔적 가격을 입력해주세요.",
+          ),
+          E.chain(
+            flow(
+              convertToNumber,
+              O.toNullable,
+              parseZodWithErrorMessage(
+                z
+                  .number({ message: "올바른 값을 입력해주세요." })
+                  .min(0, { message: "0 이상의 값을 입력해주세요." }),
+              ),
+            ),
+          ),
+        ),
+      });
+    },
+  );
+
+  const _scrollSlotCountAtom = atom<FormPayload<number>>({
+    input: "8",
+    value: E.of(8),
+  });
+  const scrollSlotCountAtom = atom(
+    (get) => get(_scrollSlotCountAtom),
+    (_get, set, input: string) => {
+      set(_scrollSlotCountAtom, {
+        input,
+        value: pipe(
+          input,
+          E.fromPredicate(
+            (s) => s !== "",
+            () => "업그레이드 가능 횟수를 입력해주세요.",
+          ),
+          E.chain(
+            flow(
+              convertToNumber,
+              O.toNullable,
+              parseZodWithErrorMessage(
+                z
+                  .number({ message: "올바른 값을 입력해주세요." })
+                  .int({ message: "정수를 입력해주세요." })
+                  .min(1, { message: "1 이상의 값을 입력해주세요." }),
+              ),
+            ),
+          ),
+        ),
+      });
+    },
+  );
+
+  const scrollDiligenceLevelAtom = atom<number>(10);
+  const scrollGuildSkillAtom = atom<boolean>(true);
+  const scrollSundayMapleAtom = atom<("HALF_PRICE" | "FEVER_TIME")[]>(
+    [],
+  );
+
+  const scrollCostsAtom = atom<number[]>([]);
+  const scrollCostStatsAtom = atom((get) => {
+    const costs = get(scrollCostsAtom);
+    if (costs.length === 0) return null;
+    return {
+      p10: costs[Math.floor(costs.length * 0.1)] ?? 0,
+      p50: costs[Math.floor(costs.length * 0.5)] ?? 0,
+      p90: costs[Math.floor(costs.length * 0.9)] ?? 0,
+    };
+  });
+  const scrollIsCalculatingAtom = atom(false);
+  
+  const scrollInputsAtom = atom((get) =>
+    pipe(
+      E.Do,
+      E.apS(
+        "level",
+        pipe(
+          get(levelAtom).value,
+          E.mapLeft(() => "장비 레벨을 정확히 입력해주세요."),
+        ),
+      ),
+      E.apS(
+        "tracePrice",
+        pipe(
+          get(scrollTracePriceAtom).value,
+          E.mapLeft(() => "주문의 흔적 가격을 정확히 입력해주세요."),
+        ),
+      ),
+      E.apS(
+        "slotCount",
+        pipe(
+          get(scrollSlotCountAtom).value,
+          E.mapLeft(() => "업그레이드 가능 횟수를 정확히 입력해주세요."),
+        ),
+      ),
+      E.map((inputs) => ({
+        ...inputs,
+        type: get(scrollTypeAtom),
+        equipPart: get(equipPartAtom),
+        diligenceLevel: get(scrollDiligenceLevelAtom),
+        isGuildSkillEnabled: get(scrollGuildSkillAtom),
+        sundayMaple: get(scrollSundayMapleAtom),
+      })),
+    ),
+  );
+  
+  const scrollInputsErrorMessageAtom = atom((get) =>
+    pipe(
+      get(scrollInputsAtom),
+      E.match(identity, () => null),
+    ),
+  );
+
   return {
     // 공통
     levelAtom,
-    itemTypeAtom,
+    equipPartAtom,
     sfEnabledAtom,
     potEnabledAtom,
     isHighchartsLoadedAtom,
@@ -378,12 +511,25 @@ const itemScouterMoleculeConstructor = ((_, scope) => {
     potInputsAtom,
     potInputsErrorMessageAtom,
     potResultAtom,
+    potCostsAtom,
+    potCostStatsAtom,
     potIsCalculatingAtom,
     potTotalCostAtom,
-    potModeAtom,
     mainLinesAtom,
     addiLinesAtom,
+    // 주흔작
+    scrollEnabledAtom,
     scrollTypeAtom,
+    scrollTracePriceAtom,
+    scrollSlotCountAtom,
+    scrollDiligenceLevelAtom,
+    scrollGuildSkillAtom,
+    scrollSundayMapleAtom,
+    scrollCostsAtom,
+    scrollCostStatsAtom,
+    scrollIsCalculatingAtom,
+    scrollInputsAtom,
+    scrollInputsErrorMessageAtom,
   };
 }) satisfies MoleculeConstructor<unknown>;
 

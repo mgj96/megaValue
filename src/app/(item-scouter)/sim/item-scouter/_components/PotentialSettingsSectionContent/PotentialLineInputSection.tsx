@@ -3,22 +3,7 @@
 import { SelectItem } from "@heroui/react";
 
 import { Input, Select, SectionSubtitle } from "~/shared/ui";
-
-const STAT_OPTIONS = [
-  "STR",
-  "DEX",
-  "INT",
-  "LUK",
-  "올스탯",
-  "최대 HP",
-  "공격력",
-  "마력",
-  "보스 몬스터 공격 시 데미지",
-  "방어율 무시",
-  "크리티컬 데미지",
-] as const;
-
-type StatOption = (typeof STAT_OPTIONS)[number] | "";
+import { type StatOption } from "./potential-logic";
 
 export interface PotLine {
   statType: StatOption;
@@ -29,6 +14,7 @@ interface PotentialLineInputSectionProps {
   title: string;
   lines: PotLine[];
   onLineChange: (idx: number, partial: Partial<PotLine>) => void;
+  availableOptions: StatOption[];
   maxValue?: number;
 }
 
@@ -36,6 +22,7 @@ export const PotentialLineInputSection = ({
   title,
   lines,
   onLineChange,
+  availableOptions,
   maxValue,
 }: PotentialLineInputSectionProps) => {
   return (
@@ -53,7 +40,7 @@ export const PotentialLineInputSection = ({
               aria-label="옵션 선택"
               size="sm"
             >
-              {STAT_OPTIONS.map((opt) => (
+              {availableOptions.map((opt) => (
                 <SelectItem key={opt}>{opt}</SelectItem>
               ))}
             </Select>

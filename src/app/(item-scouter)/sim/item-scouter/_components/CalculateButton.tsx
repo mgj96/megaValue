@@ -13,6 +13,7 @@ import type {
   SimulateStarforceInput,
   SimulateStarforceOutput,
 } from "~/entities/starforce/workers/types";
+import type { SimulateTraceOutput } from "~/entities/equip/workers/types";
 import { PotentialQueries } from "~/features/get-potential-data/queries";
 import { E } from "~/shared/fp";
 import { maxFractionDigits, maxFractionDigitsString } from "~/shared/math";
@@ -40,31 +41,43 @@ export const CalculateButton = () => {
     sfInputsErrorMessageAtom,
     potInputsAtom,
     potInputsErrorMessageAtom,
+    scrollInputsAtom,
+    scrollInputsErrorMessageAtom,
     sfCostsAtom,
     sfDestroyedCountsAtom,
     sfIsCalculatingAtom,
     potResultAtom,
+    potCostsAtom,
     potIsCalculatingAtom,
+    scrollCostsAtom,
+    scrollIsCalculatingAtom,
     sfEnabledAtom,
     potEnabledAtom,
+    scrollEnabledAtom,
   } = useMolecule(ItemScouterMolecule);
 
   const sfEnabled = useAtomValue(sfEnabledAtom);
   const potEnabled = useAtomValue(potEnabledAtom);
+  const scrollEnabled = useAtomValue(scrollEnabledAtom);
   const sfInputsErrorMessage = useAtomValue(sfInputsErrorMessageAtom);
   const potInputsErrorMessage = useAtomValue(potInputsErrorMessageAtom);
+  const scrollInputsErrorMessage = useAtomValue(scrollInputsErrorMessageAtom);
 
   const [sfIsCalculating, setSfIsCalculating] = useAtom(sfIsCalculatingAtom);
   const [potIsCalculating, setPotIsCalculating] = useAtom(potIsCalculatingAtom);
+  const [scrollIsCalculating, setScrollIsCalculating] = useAtom(scrollIsCalculatingAtom);
   const [, setSfCosts] = useAtom(sfCostsAtom);
   const [, setSfDestroyedCounts] = useAtom(sfDestroyedCountsAtom);
   const [, setPotResult] = useAtom(potResultAtom);
+  const [, setPotCosts] = useAtom(potCostsAtom);
+  const [, setScrollCosts] = useAtom(scrollCostsAtom);
 
-  const isCalculating = sfIsCalculating || potIsCalculating;
+  const isCalculating = sfIsCalculating || potIsCalculating || scrollIsCalculating;
 
   const errorMessage =
     (sfEnabled ? sfInputsErrorMessage : null) ??
-    (potEnabled ? potInputsErrorMessage : null);
+    (potEnabled ? potInputsErrorMessage : null) ??
+    (scrollEnabled ? scrollInputsErrorMessage : null);
 
   const handleWorkerOutput = useAtomCallback(
     useCallback(
@@ -170,6 +183,9 @@ export const CalculateButton = () => {
 
         try {
           const results: { expectedCount: number; expectedCost: number }[] = [];
+          
+          const simulationTotalCount = 10000;
+          const allCosts: number[] = new Array(simulationTotalCount).fill(0);
 
           for (let i = currentIdx; i < targetIdx; i++) {
             const grade = gradeOrder[i];
@@ -190,14 +206,110 @@ export const CalculateButton = () => {
               expectedCount,
               expectedCost: expectedCount * cubePrice,
             });
+            
+            // 큐브 시뮬레이션을 위한 임의 분포 (간단한 이항 시뮬레이션: 천장 지원)
+            const prob = record.probability;
+            const ceil = record.ceil;
+            for (let j = 0; j < simulationTotalCount; j++) {
+              let count = 0;
+              let success = false;
+              while (!success) {
+                count++;
+                if (Math.random() <= prob) success = true;
+                if (ceil && count >= ceil) success = true;
+              }
+              allCosts[j] += count * cubePrice;
+            }
           }
-
+          
+          allCosts.sort((a, b) => a - b);
+          setPotCosts(allCosts);
           setPotResult(results);
         } finally {
           setPotIsCalculating(false);
         }
       },
-      [potInputsAtom, queryClient, setPotIsCalculating, setPotResult],
+      [potInputsAtom, queryClient, setPotIsCalculating, setPotResult, setPotCosts],
+    ),
+  );
+
+  const traceWorkers = useRef<Worker[]>([]);
+  const finishedTraceWorkerCount = useRef(0);
+  const localTraceCosts = useRef<number[]>([]);
+
+  const handleTraceWorkerOutput = useAtomCallback(
+    useCallback(
+      (_, set, output: SimulateTraceOutput) => {
+        if (output.type === "calculating") {
+          // You could add progress state if needed
+        } else {
+          finishedTraceWorkerCount.current += 1;
+          localTraceCosts.current = [...localTraceCosts.current, ...output.costs];
+        }
+
+        if (finishedTraceWorkerCount.current === traceWorkers.current.length) {
+          localTraceCosts.current.sort((a, b) => a - b);
+          setScrollCosts(localTraceCosts.current);
+          setScrollIsCalculating(false);
+        }
+      },
+      [setScrollCosts, setScrollIsCalculating],
+    ),
+  );
+
+  const startTraceCalc = useAtomCallback(
+    useCallback(
+      (get) => {
+        const inputs = E.getOrElseW(() => null)(get(scrollInputsAtom));
+        if (!inputs) return;
+
+        const simulationTotalCount = 10000; // 좀 더 가벼운 횟수 
+        const simulationSetCount = Math.min(10, simulationTotalCount);
+        const simulationUnitCount = Math.floor(
+          simulationTotalCount / simulationSetCount,
+        );
+
+        const simulationWorkerSetCount = Math.max(
+          1,
+          Math.floor(simulationSetCount / maxWorkerCount.current),
+        );
+
+        traceWorkers.current = Array.from({
+          length: Math.min(maxWorkerCount.current, simulationTotalCount),
+        }).map((_, index, arr) => {
+          const worker = new Worker(
+            new URL(
+              "~/entities/equip/workers/simulateTrace.ts",
+              import.meta.url,
+            ),
+          );
+
+          worker.onmessage = (event: MessageEvent<SimulateTraceOutput>) => {
+            handleTraceWorkerOutput(event.data);
+          };
+
+          worker.postMessage({
+            ...inputs,
+            tracePrice: Number(inputs.tracePrice) || 2000,
+            slotCount: Number(inputs.slotCount) || 8,
+            ...(index === arr.length - 1
+              ? {
+                  simulationTotalCount:
+                    simulationTotalCount -
+                    (arr.length - 1) *
+                      simulationWorkerSetCount *
+                      simulationUnitCount,
+                }
+              : {
+                  simulationTotalCount:
+                    simulationWorkerSetCount * simulationUnitCount,
+                }),
+          });
+
+          return worker;
+        });
+      },
+      [handleTraceWorkerOutput, scrollInputsAtom],
     ),
   );
 
@@ -208,6 +320,9 @@ export const CalculateButton = () => {
         finishedWorkerCount.current = 0;
         localCosts.current = [];
         localDestroyedCounts.current = [];
+        
+        finishedTraceWorkerCount.current = 0;
+        localTraceCosts.current = [];
 
         if (sfEnabled) {
           setSfIsCalculating(true);
@@ -218,22 +333,32 @@ export const CalculateButton = () => {
           setPotIsCalculating(true);
           startPotentialCalc();
         }
+        
+        if (scrollEnabled) {
+          setScrollIsCalculating(true);
+          startTraceCalc();
+        }
       },
       [
         sfEnabled,
         potEnabled,
+        scrollEnabled,
         setSfIsCalculating,
         setPotIsCalculating,
+        setScrollIsCalculating,
         startStarforceCalc,
         startPotentialCalc,
+        startTraceCalc,
       ],
     ),
   );
 
   const cancelCalculate = () => {
     workers.current.forEach((w) => w.terminate());
+    traceWorkers.current.forEach((w) => w.terminate());
     setSfIsCalculating(false);
     setPotIsCalculating(false);
+    setScrollIsCalculating(false);
   };
 
   useIsomorphicLayoutEffect(() => {

@@ -2,7 +2,7 @@
 
 import { SelectItem } from "@heroui/react";
 import { useMolecule } from "bunshi/react";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom } from "jotai";
 
 import { ItemScouterMolecule } from "~/app/(item-scouter)/sim/item-scouter/_lib/molecule";
 import { Potential } from "~/entities/potential";
@@ -11,23 +11,17 @@ import { Select } from "~/shared/ui";
 
 const gradeOrder: Potential.Grade[] = ["RARE", "EPIC", "UNIQUE", "LEGENDARY"];
 
-export const GradeSelects = () => {
-  const { potCurrentGradeAtom, potTargetGradeAtom, potModeAtom } =
+export const GradeSelects = ({ isOptionMode = false }: { isOptionMode?: boolean }) => {
+  const { potCurrentGradeAtom, potTargetGradeAtom } =
     useMolecule(ItemScouterMolecule);
   const [currentGrade, setCurrentGrade] = useAtom(potCurrentGradeAtom);
   const [targetGrade, setTargetGrade] = useAtom(potTargetGradeAtom);
-  const potMode = useAtomValue(potModeAtom);
 
   const currentGradeIdx = gradeOrder.indexOf(currentGrade);
   const targetGrades = gradeOrder.slice(currentGradeIdx + 1);
 
   return (
-    <div
-      className={cx(
-        "grid gap-4",
-        potMode === "GRADE_UP" ? "grid-cols-2" : "grid-cols-1",
-      )}
-    >
+    <div className={cx("grid gap-4", isOptionMode ? "grid-cols-1" : "grid-cols-2")}>
       <Select
         label="현재 등급"
         selectedKeys={[currentGrade]}
@@ -46,14 +40,12 @@ export const GradeSelects = () => {
           }
         }}
       >
-        {(potMode === "GRADE_UP" ? gradeOrder.slice(0, -1) : gradeOrder).map(
-          (grade) => (
-            <SelectItem key={grade}>{Potential.gradeLabels[grade]}</SelectItem>
-          ),
-        )}
+        {(isOptionMode ? gradeOrder : gradeOrder.slice(0, -1)).map((grade) => (
+          <SelectItem key={grade}>{Potential.gradeLabels[grade]}</SelectItem>
+        ))}
       </Select>
 
-      {potMode === "GRADE_UP" && (
+      {!isOptionMode && (
         <Select
           label="목표 등급"
           selectedKeys={[targetGrade]}

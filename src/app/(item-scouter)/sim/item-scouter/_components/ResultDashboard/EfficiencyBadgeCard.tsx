@@ -11,20 +11,30 @@ import {
 } from "./utils";
 
 interface EfficiencyBadgeCardProps {
-  sfCostStats: CostStats;
+  sfCostStats: CostStats | null;
   sfLuck: number;
-  potTotalCost: number | null;
+  potCostStats: CostStats | null;
+  potLuck: number;
+  scrollCostStats: CostStats | null;
+  scrollLuck: number;
 }
 
 export const EfficiencyBadgeCard = ({
   sfCostStats,
   sfLuck,
-  potTotalCost,
+  potCostStats,
+  potLuck,
+  scrollCostStats,
+  scrollLuck,
 }: EfficiencyBadgeCardProps) => {
-  const efficiencyGrade = getEfficiencyGrade(sfCostStats.p10, sfCostStats.p90);
-  const sfCost = getCostByLuck(sfCostStats, sfLuck);
-  const potCost = potTotalCost ?? 0;
-  const totalCost = sfCost + potCost;
+  const sfCost = sfCostStats ? getCostByLuck(sfCostStats, sfLuck) : 0;
+  const potCost = potCostStats ? getCostByLuck(potCostStats, potLuck) : 0;
+  const scrollCost = scrollCostStats ? getCostByLuck(scrollCostStats, scrollLuck) : 0;
+  
+  const totalCost = sfCost + potCost + scrollCost;
+  
+  // Use sfCostStats for efficiency grade if available, otherwise just use a default
+  const efficiencyGrade = sfCostStats ? getEfficiencyGrade(sfCostStats.p10, sfCostStats.p90) : "A";
 
   return (
     <div className="flex items-center gap-3 rounded-2xl bg-default-50 px-4 py-3">

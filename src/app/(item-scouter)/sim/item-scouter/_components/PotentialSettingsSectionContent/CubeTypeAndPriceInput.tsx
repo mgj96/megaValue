@@ -8,7 +8,8 @@ import { useState } from "react";
 
 import { ItemScouterMolecule } from "~/app/(item-scouter)/sim/item-scouter/_lib/molecule";
 import { Potential } from "~/entities/potential";
-import { E } from "~/shared/fp";
+import { E, O } from "~/shared/fp";
+import { convertToNumber, putUnit } from "~/shared/number";
 import { Input, Select } from "~/shared/ui";
 
 export const CubeTypeAndPriceInput = () => {
@@ -33,6 +34,15 @@ export const CubeTypeAndPriceInput = () => {
     (method) =>
       Potential.gradesEnableToPromote[method]?.includes(currentGrade) &&
       Potential.typesEnableToReset[method]?.includes(potType),
+  );
+
+  const formattedPrice = pipe(
+    cubePrice.input,
+    convertToNumber,
+    O.match(
+      () => "",
+      (n) => `(${putUnit(n)})`,
+    ),
   );
 
   return (
@@ -67,7 +77,7 @@ export const CubeTypeAndPriceInput = () => {
         onBlur={() => setCubePriceTouched(true)}
         isInvalid={cubePriceTouched && !!cubePriceError}
         errorMessage={cubePriceTouched && cubePriceError}
-        description="큐브 1개당 가격"
+        description={`큐브 1개당 가격 ${formattedPrice}`}
       />
     </>
   );

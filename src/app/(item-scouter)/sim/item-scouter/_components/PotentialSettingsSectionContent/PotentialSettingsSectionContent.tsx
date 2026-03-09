@@ -1,8 +1,9 @@
 "use client";
 
+import { Tabs, Tab } from "@heroui/react";
 import { useMolecule } from "bunshi/react";
 import { useAtom, useAtomValue } from "jotai";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { ItemScouterMolecule } from "~/app/(item-scouter)/sim/item-scouter/_lib/molecule";
 import { Button } from "~/shared/ui";
@@ -13,7 +14,7 @@ import {
   type PotLine,
   PotentialLineInputSection,
 } from "./PotentialLineInputSection";
-import { PotentialModeToggle } from "./PotentialModeToggle";
+import { getAvailableStatOptions, type StatOption } from "./potential-logic";
 import { PotentialTypeRadioGroup } from "./PotentialTypeRadioGroup";
 
 const EMPTY_LINES: PotLine[] = [
@@ -29,14 +30,19 @@ function formatLines(lines: PotLine[]): string[] {
 }
 
 export const PotentialSettingsSectionContent = () => {
-  const { itemTypeAtom, mainLinesAtom, addiLinesAtom } =
+  const { equipPartAtom, mainLinesAtom, addiLinesAtom } =
     useMolecule(ItemScouterMolecule);
-  const itemType = useAtomValue(itemTypeAtom);
+  const equipPart = useAtomValue(equipPartAtom);
   const [, setMainLines] = useAtom(mainLinesAtom);
   const [, setAddiLines] = useAtom(addiLinesAtom);
 
+  const mainAvailableOptions = getAvailableStatOptions(equipPart, false);
+  const addiAvailableOptions = getAvailableStatOptions(equipPart, true);
+
   const [mainLineInputs, setMainLineInputs] = useState<PotLine[]>(EMPTY_LINES);
   const [addiLineInputs, setAddiLineInputs] = useState<PotLine[]>(EMPTY_LINES);
+  
+  const [selectedTab, setSelectedTab] = useState<"GRADE" | "OPTION">("GRADE");
 
   function handleMainLineChange(idx: number, partial: Partial<PotLine>) {
     const updated = mainLineInputs.map((line, i) =>
@@ -56,7 +62,7 @@ export const PotentialSettingsSectionContent = () => {
 
   function resetDetailLines() {
     const empty = EMPTY_LINES.map(() => ({
-      statType: "" as PotLine["statType"],
+      statType: "" as StatOption,
       value: "",
     }));
     setMainLineInputs(empty);
@@ -65,6 +71,40 @@ export const PotentialSettingsSectionContent = () => {
     setAddiLines([]);
   }
 
+  useEffect(() => {
+    setMainLineInputs((prev) => {
+      let changed = false;
+      const next = prev.map((l) => {
+        if (l.statType && !mainAvailableOptions.includes(l.statType)) {
+          changed = true;
+          return { ...l, statType: "" as StatOption, value: "" };
+        }
+        return l;
+      });
+      if (changed) {
+        setMainLines(formatLines(next));
+        return next;
+      }
+      return prev;
+    });
+
+    setAddiLineInputs((prev) => {
+      let changed = false;
+      const next = prev.map((l) => {
+        if (l.statType && !addiAvailableOptions.includes(l.statType)) {
+          changed = true;
+          return { ...l, statType: "" as StatOption, value: "" };
+        }
+        return l;
+      });
+      if (changed) {
+        setAddiLines(formatLines(next));
+        return next;
+      }
+      return prev;
+    });
+  }, [equipPart]); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <div className="flex flex-col gap-6">
       {/* 헤더: 잠재능력 설정 타이틀 + 초기화 버튼 */}
@@ -72,7 +112,7 @@ export const PotentialSettingsSectionContent = () => {
         <div className="flex items-center gap-2">
           <h2 className="text-lg font-bold text-primary">잠재능력 설정</h2>
           <span className="rounded-full bg-primary-50 px-2 py-0.5 text-[10px] font-bold text-primary-600">
-            {itemType} 기준
+            {equipPart} 기준
           </span>
         </div>
         <Button
@@ -85,23 +125,55 @@ export const PotentialSettingsSectionContent = () => {
         </Button>
       </div>
 
-      <PotentialModeToggle />
-      <PotentialTypeRadioGroup />
-      <GradeSelects />
-      <CubeTypeAndPriceInput />
+      <div className="flex w-full flex-col -mt-2">
+        <Tabs
+          selectedKey={selectedTab}
+          onSelectionChange={(k) => setSelectedTab(k as "GRADE" | "OPTION")}
+          color="primary"
+          variant="underlined"
+          classNames={{
+            tabList:
+              "gap-6 w-full relative rounded-none p-0 border-b border-default-200",
+            cursor: "w-full bg-primary",
+            tab: "max-w-fit px-0 h-10",
+            tabContent: "group-data-[selected=true]:text-primary font-bold",
+          }}
+        >
+          <Tab key="GRADE" title="등급(등업) 설정" />
+          <Tab key="OPTION" title="목표 옵션 설정" />
+        </Tabs>
+      </div>
 
-      <PotentialLineInputSection
-        title="윗잠 (주 잠재)"
-        lines={mainLineInputs}
-        onLineChange={handleMainLineChange}
-        maxValue={45}
-      />
-      <PotentialLineInputSection
-        title="밑잠 (에디셔널)"
-        lines={addiLineInputs}
-        onLineChange={handleAddiLineChange}
-        maxValue={21}
-      />
+      {selectedTab === "GRADE" && (
+        <div className="flex flex-col gap-6">
+          <PotentialTypeRadioGroup />
+          <GradeSelects />
+          <CubeTypeAndPriceInput />
+        </div>
+      )}
+
+      {selectedTab === "OPTION" && (
+        <div className="flex flex-col gap-6">
+          <PotentialTypeRadioGroup />
+          <GradeSelects isOptionMode={true} />
+          <CubeTypeAndPriceInput />
+
+          <PotentialLineInputSection
+            title="윗잠 (주 잠재)"
+            lines={mainLineInputs}
+            onLineChange={handleMainLineChange}
+            availableOptions={mainAvailableOptions}
+            maxValue={45}
+          />
+          <PotentialLineInputSection
+            title="밑잠 (에디셔널)"
+            lines={addiLineInputs}
+            onLineChange={handleAddiLineChange}
+            availableOptions={addiAvailableOptions}
+            maxValue={21}
+          />
+        </div>
+      )}
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import { CurrentStarInput } from "./CurrentStarInput";
 import { EquipLevelInput } from "./EquipLevelInput";
-import { EquipTypeToggle } from "./EquipTypeToggle";
+import { EquipPartSelect } from "./EquipPartSelect";
 import { SpareCostInput } from "./SpareCostInput";
 import { TargetStarInput } from "./TargetStarInput";
 
@@ -11,7 +11,7 @@ export const BasicSettingsSectionContent = () => {
       <div className="grid grid-cols-2 gap-4">
         <div className="flex flex-col gap-3">
           <EquipLevelInput />
-          <EquipTypeToggle />
+          <EquipPartSelect />
         </div>
         <SpareCostInput />
       </div>
