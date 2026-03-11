@@ -25,6 +25,10 @@ export const AimStatInput = ({ classNames }: Props) => {
   const equipType = useAtomValue(bonusStatCalcAtoms.equipType);
   const isTouched = aimStat != null;
 
+  if (equipType === "WEAPON") {
+    return null;
+  }
+
   return (
     <Input
       classNames={classNames}
@@ -36,11 +40,6 @@ export const AimStatInput = ({ classNames }: Props) => {
       defaultValue={aimStat?.toString() || undefined}
       isInvalid={isTouched && E.isLeft(aimStatParseResult)}
       errorMessage={isTouched && aimStatErrorMessage}
-      description={
-        equipType === "WEAPON" &&
-        "무기 공격력/마력 추옵에 대한 환산 스탯은 제외됩니다."
-      }
-      placeholder={equipType === "WEAPON" ? "0" : undefined}
     />
   );
 };
