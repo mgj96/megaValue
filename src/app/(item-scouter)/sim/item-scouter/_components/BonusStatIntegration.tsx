@@ -15,13 +15,13 @@ import { type Equip } from "~/entities/equip";
 import { bonusStatCalcAtoms } from "~/app/(bonus-stat-calc)/calc/bonus-stat/_lib/atoms";
 import { ItemScouterMolecule } from "~/app/(item-scouter)/sim/item-scouter/_lib/molecule";
 
-function BonusStatSync({
+const BonusStatSync = ({
   equipPart,
   levelPayload,
 }: {
   equipPart: Equip;
   levelPayload: FormPayload<number>;
-}) {
+}) => {
   const setBonusEquipType = useSetAtom(bonusStatCalcAtoms.equipType);
   const setBonusEquipLevel = useSetAtom(bonusStatCalcAtoms.equipLevel);
 
@@ -48,7 +48,7 @@ function BonusStatSync({
   }, [levelPayload.value, setBonusEquipLevel]);
 
   return null;
-}
+};
 
 export const BonusStatIntegration = () => {
   const { equipPartAtom, levelAtom } = useMolecule(ItemScouterMolecule);

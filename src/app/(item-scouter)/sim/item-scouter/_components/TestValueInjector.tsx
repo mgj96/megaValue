@@ -52,7 +52,7 @@ export const TestValueInjector = ({ onInjected }: Props) => {
       {},
     );
     // Note: Atom expecting string keys for record
-    setSfStarcatchRecord(allStarcatch as any);
+    setSfStarcatchRecord(allStarcatch as { [key: `${number}`]: boolean });
 
     // 3. 주문서
     setScrollType("15%");

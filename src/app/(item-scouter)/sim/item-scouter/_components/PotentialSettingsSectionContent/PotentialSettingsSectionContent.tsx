@@ -1,4 +1,4 @@
-깁"use client";
+"use client";
 
 import { Tabs, Tab } from "@heroui/react";
 import { useMolecule } from "bunshi/react";
