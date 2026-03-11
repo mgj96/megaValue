@@ -7,5 +7,5 @@ loadEnvConfig(process.cwd());
 
 writeFileSync(
   path.join(process.cwd(), "public/ads.txt"),
-  process.env.GOOGLE_ADS_TXT_CONTENT,
+  process.env.GOOGLE_ADS_TXT_CONTENT ?? "",
 );
