@@ -6,13 +6,19 @@ import { OpenStatEfficiencyModalButton } from "./OpenStatEfficiencyModalButton";
 import { OpenStatSimulationModalButton } from "./OpenStatSimulationModalButton";
 import { WeaponGradeSelect } from "./WeaponGradeSelect";
 
-export const SettingSectionContent = () => {
+export const SettingSectionContent = ({
+  hideEquipType = false,
+  hideEquipLevel = false,
+}: {
+  hideEquipType?: boolean;
+  hideEquipLevel?: boolean;
+}) => {
   return (
     <>
       <div className="grid grid-cols-2 justify-items-stretch gap-4 last:odd:*:col-span-2">
-        <EquipTypeSelect />
+        {!hideEquipType && <EquipTypeSelect />}
         <IsBossDropCheckbox />
-        <EquipLevelInput />
+        {!hideEquipLevel && <EquipLevelInput />}
         <WeaponGradeSelect />
         <AimStatInput />
       </div>
