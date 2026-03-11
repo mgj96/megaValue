@@ -14,9 +14,12 @@ export const WeaponGradeSelect = () => {
   const isBossDrop = useAtomValue(bonusStatCalcAtoms.isBossDrop);
   const setWeaponGrade = useSetAtom(bonusStatCalcAtoms.weaponGrade);
 
+  if (equipType === equipTypeSchema.enum.NON_WEAPON) {
+    return null;
+  }
+
   return (
     <Select
-      isDisabled={equipType !== equipTypeSchema.enum.WEAPON}
       label="무기 추옵 등급"
       defaultSelectedKeys={["none"]}
       onChange={(e) => {
