@@ -26,6 +26,7 @@ COPY . .
 RUN npx prisma generate
 
 # Build-time env vars (NEXT_PUBLIC_* 는 빌드 시 번들에 포함됨)
+ARG CACHEBUST
 ARG DATABASE_URL="postgresql://user:pass@localhost:5432/db"
 ARG GOOGLE_ADS_TXT_CONTENT=""
 ARG NEXT_PUBLIC_POTENTIAL_DATA_VERSION="1"
@@ -41,7 +42,11 @@ ENV DATABASE_URL=$DATABASE_URL \
     GA4_ID=$GA4_ID \
     NEXT_TELEMETRY_DISABLED=1
 
-RUN pnpm build
+# ads.txt 생성 (Docker에서는 tsx 없이 Node로만 처리 → generate-ads-txt 스크립트 스킵)
+RUN node -e "require('fs').mkdirSync('public',{recursive:true}); require('fs').writeFileSync('public/ads.txt', process.env.GOOGLE_ADS_TXT_CONTENT || '')"
+
+# CACHEBUST(예: git sha)로 푸시마다 이 레이어 캐시 무효화 → 항상 최신 소스로 빌드
+RUN echo "Build from ${CACHEBUST:-unknown}" && pnpm exec next build
 
 # pnpm 가상 스토어의 .prisma 클라이언트를 표준 경로로 복사
 # (runner 이미지에서 COPY 시 실제 파일이 필요)
