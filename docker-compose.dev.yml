@@ -1,6 +1,12 @@
 # 개발 모드 오버라이드
 # 사용법: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
 #         또는: ./manage.sh dev
+#
+# .next 는 볼륨으로 두지 않음 → 마운트된 호스트 ./ 에 생성됨.
+# 소스/레이아웃 대량 변경 후 CSS·글자 깨지면:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml down -v
+#   rm -rf .next
+#   ./manage.sh dev
 
 services:
   app:
@@ -10,7 +16,6 @@ services:
     volumes:
       - .:/app              # 소스코드 실시간 반영
       - /app/node_modules   # 컨테이너 node_modules 보존 (host와 충돌 방지)
-      - /app/.next          # .next 캐시 보존
     environment:
       NODE_ENV: development
     ports:
