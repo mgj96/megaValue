@@ -3,22 +3,18 @@
 import chalk from "chalk";
 import { readonlyArray } from "fp-ts";
 import { log } from "fp-ts/lib/Console";
+import * as A from "fp-ts/lib/Array";
+import * as E from "fp-ts/lib/Either";
+import * as TE from "fp-ts/lib/TaskEither";
 import { flow, pipe } from "fp-ts/lib/function";
 
 import { equips, type Equip } from "~/entities/equip";
 import { Potential } from "~/entities/potential";
 import { flattenLevel } from "~/entities/potential/utils";
-import {
-  createPotentialOptionTable,
-  fetchGradePage,
-  fetchOptionDataPage,
-  getGradeUpRecordsFromPage,
-  getOptionGradeRecordsFromPage,
-  getOptionRecordsFromPage,
-} from "~/features/get-potential-data/serverLogics";
-import { A, E, TE } from "~/shared/fp";
-import { delay, taskEitherToPromise } from "~/shared/function";
-import { prisma } from "~/shared/prisma";
+import * as potentialServerLogics from "~/features/get-potential-data/serverLogics";
+import * as sharedFunction from "~/shared/function";
+import * as sharedPrisma from "~/shared/prisma";
+const { prisma } = sharedPrisma;
 
 const ERASE_CURRENT_LINE = "\u001b[2K\u001b[0G";
 
@@ -31,6 +27,17 @@ const consoleProgressBar =
     );
   };
 const consoleProgressBar50 = consoleProgressBar(50);
+
+const {
+  createPotentialOptionTable,
+  fetchGradePage,
+  fetchOptionDataPage,
+  getGradeUpRecordsFromPage,
+  getOptionGradeRecordsFromPage,
+  getOptionRecordsFromPage,
+} = potentialServerLogics;
+
+const { delay, taskEitherToPromise } = sharedFunction;
 
 const prefetchGradeUp = ({ methods }: { methods: Potential.ResetMethod[] }) =>
   pipe(
