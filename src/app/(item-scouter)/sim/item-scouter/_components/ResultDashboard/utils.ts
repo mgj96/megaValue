@@ -1,4 +1,9 @@
-export type CostStats = { p10: number; p50: number; p90: number };
+export type CostStats = {
+  p10: number;
+  p50: number;
+  p90: number;
+  mean: number;
+};
 
 /** HANDOFF §7: 3-구간 선형 보간 */
 export function getCostByLuck(stats: CostStats, luck: number): number {

@@ -5,6 +5,7 @@ import { flow, identity, pipe } from "fp-ts/lib/function";
 import { atom } from "jotai";
 import { z } from "zod";
 
+import type { GoalSimulationDistribution, GoalSimulationSummary } from "~/entities/game/goal-simulation";
 import type { Potential } from "~/entities/potential";
 import type { Equip } from "~/entities/equip";
 import { Starforce } from "~/entities/starforce";
@@ -155,9 +156,10 @@ const itemScouterMoleculeConstructor = ((_, scope) => {
     17: false,
   });
 
+  /** 스타캐치 상시 적용: UI 제거 후 모든 성에서 true로 고정 */
   const sfStarcatchRecordAtom = atom<{ [key: `${number}`]: boolean }>(
     Array.from({ length: 30 }).reduce<{ [key: number]: boolean }>(
-      (acc, _, i) => ({ ...acc, [i]: false }),
+      (acc, _, i) => ({ ...acc, [i]: true }),
       {},
     ),
   );
@@ -218,6 +220,53 @@ const itemScouterMoleculeConstructor = ((_, scope) => {
   const sfCostsAtom = atom<number[]>([]);
   const sfDestroyedCountsAtom = atom<number[]>([]);
   const sfResultExistsAtom = atom((get) => get(sfCostsAtom).length > 0);
+
+  /** 스타포스 목표 달성 시뮬 결과 (요약 + 분포). null이면 카드 미표시 */
+  const sfGoalSimulationResultAtom = atom<{
+    summary: GoalSimulationSummary;
+    distribution: GoalSimulationDistribution;
+    budget: number;
+  } | null>(null);
+
+  /** 목표 달성 시뮬 예산: 입력은 "억" 단위(1 = 1억 메소), value는 메소 */
+  const ONE_EOK = 100_000_000;
+  const _sfGoalBudgetAtom = atom<FormPayload<number>>({
+    input: "10",
+    value: E.right(10 * ONE_EOK),
+  });
+  const sfGoalBudgetAtom = atom(
+    (get) => get(_sfGoalBudgetAtom),
+    (_get, set, input: string) => {
+      // "20억", "20" 모두 파싱: 억 제거 후 숫자만 추출
+      const normalized = input.trim().replace(/억\s*$/i, "").trim();
+      const value = pipe(
+        normalized,
+        E.fromPredicate(
+          (s) => s !== "",
+          () => "예산을 입력해주세요.",
+        ),
+        E.chain((s) =>
+          pipe(
+            convertToNumber(s),
+            O.toNullable,
+            parseZodWithErrorMessage(
+              z
+                .number({ message: "올바른 값을 입력해주세요." })
+                .min(0, { message: "0 이상의 값을 입력해주세요." }),
+            ),
+            E.map((억단위) => 억단위 * ONE_EOK),
+          ),
+        ),
+      );
+      set(_sfGoalBudgetAtom, { input, value });
+    },
+  );
+
+  /** 목표 달성 시뮬 반복 횟수 (기본 10,000) */
+  const sfGoalIterationsAtom = atom(10_000);
+
+  /** 목표 달성 시뮬 실행 중 */
+  const sfGoalSimulationRunningAtom = atom(false);
 
   // 잠재능력 결과 (등급업 기대 비용/횟수)
   type PotResult = { expectedCount: number; expectedCost: number }[];
@@ -326,10 +375,12 @@ const itemScouterMoleculeConstructor = ((_, scope) => {
   const sfCostStatsAtom = atom((get) => {
     const costs = get(sfCostsAtom);
     if (costs.length === 0) return null;
+    const sum = costs.reduce((a, b) => a + b, 0);
     return {
       p10: costs[Math.floor(costs.length * 0.1)] ?? 0,
       p50: costs[Math.floor(costs.length * 0.5)] ?? 0,
       p90: costs[Math.floor(costs.length * 0.9)] ?? 0,
+      mean: sum / costs.length,
     };
   });
 
@@ -343,10 +394,12 @@ const itemScouterMoleculeConstructor = ((_, scope) => {
   const potCostStatsAtom = atom((get) => {
     const costs = get(potCostsAtom);
     if (costs.length === 0) return null;
+    const sum = costs.reduce((a, b) => a + b, 0);
     return {
       p10: costs[Math.floor(costs.length * 0.1)] ?? 0,
       p50: costs[Math.floor(costs.length * 0.5)] ?? 0,
       p90: costs[Math.floor(costs.length * 0.9)] ?? 0,
+      mean: sum / costs.length,
     };
   });
 
@@ -430,10 +483,12 @@ const itemScouterMoleculeConstructor = ((_, scope) => {
   const scrollCostStatsAtom = atom((get) => {
     const costs = get(scrollCostsAtom);
     if (costs.length === 0) return null;
+    const sum = costs.reduce((a, b) => a + b, 0);
     return {
       p10: costs[Math.floor(costs.length * 0.1)] ?? 0,
       p50: costs[Math.floor(costs.length * 0.5)] ?? 0,
       p90: costs[Math.floor(costs.length * 0.9)] ?? 0,
+      mean: sum / costs.length,
     };
   });
   const scrollIsCalculatingAtom = atom(false);
@@ -501,6 +556,10 @@ const itemScouterMoleculeConstructor = ((_, scope) => {
     sfCostsAtom,
     sfDestroyedCountsAtom,
     sfResultExistsAtom,
+    sfGoalSimulationResultAtom,
+    sfGoalBudgetAtom,
+    sfGoalIterationsAtom,
+    sfGoalSimulationRunningAtom,
     sfCostStatsAtom,
     // 잠재능력
     potTypeAtom,

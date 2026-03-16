@@ -7,6 +7,7 @@ import { useState } from "react";
 import { ItemScouterMolecule } from "~/app/(item-scouter)/sim/item-scouter/_lib/molecule";
 
 import { EfficiencyBadgeCard } from "./EfficiencyBadgeCard";
+import { GoalSimulationCard } from "./GoalSimulationCard";
 import { LuckSliderCard } from "./LuckSliderCard";
 import { PotentialCostBreakdown } from "./PotentialCostBreakdown";
 import { StarforceCostCharts } from "./StarforceCostCharts";
@@ -14,6 +15,7 @@ import { StarforceCostCharts } from "./StarforceCostCharts";
 export const ResultDashboard = () => {
   const {
     sfResultExistsAtom,
+    sfGoalSimulationResultAtom,
     sfIsCalculatingAtom,
     sfCostStatsAtom,
     potResultAtom,
@@ -32,6 +34,7 @@ export const ResultDashboard = () => {
   const scrollEnabled = useAtomValue(scrollEnabledAtom);
   
   const sfResultExists = useAtomValue(sfResultExistsAtom);
+  const sfGoalSimulationResult = useAtomValue(sfGoalSimulationResultAtom);
   
   const sfIsCalculating = useAtomValue(sfIsCalculatingAtom);
   const potIsCalculating = useAtomValue(potIsCalculatingAtom);
@@ -81,6 +84,21 @@ export const ResultDashboard = () => {
           potLuck={potLuck}
           scrollCostStats={scrollEnabled && scrollCostStats ? scrollCostStats : null}
           scrollLuck={scrollLuck}
+        />
+      )}
+
+      {/* 목표 달성 시뮬 결과 (스타포스) */}
+      {sfEnabled && sfGoalSimulationResult && (
+        <GoalSimulationCard
+          title="스타포스 목표 달성"
+          summary={sfGoalSimulationResult.summary}
+          budget={sfGoalSimulationResult.budget}
+          curveData={[
+            {
+              budget: sfGoalSimulationResult.budget,
+              successProbability: sfGoalSimulationResult.summary.successProbability,
+            },
+          ]}
         />
       )}
 

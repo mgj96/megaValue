@@ -57,6 +57,11 @@ export const LuckSliderCard = ({
         )}
       </div>
 
+      <p className="mb-2 text-[10px] text-default-400">
+        평균 {putUnit(Math.round(stats.mean))} · 중앙값 {putUnit(stats.p50)}{" "}
+        메소
+      </p>
+
       <input
         type="range"
         min={1}

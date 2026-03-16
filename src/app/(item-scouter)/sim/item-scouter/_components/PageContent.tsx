@@ -15,7 +15,7 @@ export const PageContent = () => {
     <div className="flex flex-col gap-6">
       {/* 헤더 및 핵심 결과 요약 (Top Dashboard) */}
       <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h1 className="text-xl font-bold md:text-2xl">아이템 강화 비용 분석</h1>
           <CalculateButton />
         </div>

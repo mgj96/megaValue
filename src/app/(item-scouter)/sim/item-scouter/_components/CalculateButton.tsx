@@ -72,12 +72,29 @@ export const CalculateButton = () => {
   const [, setPotCosts] = useAtom(potCostsAtom);
   const [, setScrollCosts] = useAtom(scrollCostsAtom);
 
-  const isCalculating = sfIsCalculating || potIsCalculating || scrollIsCalculating;
+  const isCalculating =
+    sfIsCalculating || potIsCalculating || scrollIsCalculating;
+
+  const canRunStarforce = sfEnabled && !sfInputsErrorMessage;
+  const canRunPotential = potEnabled && !potInputsErrorMessage;
+  const canRunScroll = scrollEnabled && !scrollInputsErrorMessage;
+
+  const canRunAny = canRunStarforce || canRunPotential || canRunScroll;
 
   const errorMessage =
-    (sfEnabled ? sfInputsErrorMessage : null) ??
-    (potEnabled ? potInputsErrorMessage : null) ??
-    (scrollEnabled ? scrollInputsErrorMessage : null);
+    (sfEnabled && sfInputsErrorMessage) ||
+    (potEnabled && potInputsErrorMessage) ||
+    (scrollEnabled && scrollInputsErrorMessage) ||
+    null;
+
+  const isDisabled = !canRunAny || isCalculating;
+
+  const tooltipMessage =
+    !canRunAny && errorMessage
+      ? errorMessage
+      : canRunAny && errorMessage
+        ? "일부 항목에 오류가 있어 해당 항목만 제외하고 시뮬레이션합니다."
+        : null;
 
   const handleWorkerOutput = useAtomCallback(
     useCallback(
@@ -324,25 +341,25 @@ export const CalculateButton = () => {
         finishedTraceWorkerCount.current = 0;
         localTraceCosts.current = [];
 
-        if (sfEnabled) {
+        if (canRunStarforce) {
           setSfIsCalculating(true);
           startStarforceCalc();
         }
 
-        if (potEnabled) {
+        if (canRunPotential) {
           setPotIsCalculating(true);
           startPotentialCalc();
         }
-        
-        if (scrollEnabled) {
+
+        if (canRunScroll) {
           setScrollIsCalculating(true);
           startTraceCalc();
         }
       },
       [
-        sfEnabled,
-        potEnabled,
-        scrollEnabled,
+        canRunStarforce,
+        canRunPotential,
+        canRunScroll,
         setSfIsCalculating,
         setPotIsCalculating,
         setScrollIsCalculating,
@@ -370,12 +387,12 @@ export const CalculateButton = () => {
 
   return (
     <div className="flex items-center gap-2">
-      <Tooltip content={errorMessage} isDisabled={errorMessage == null}>
+      <Tooltip content={tooltipMessage} isDisabled={tooltipMessage == null}>
         <Button
           color={isCalculating ? "default" : "primary"}
           size="md"
           onPress={() => handleCalculate()}
-          isDisabled={!!errorMessage || isCalculating}
+          isDisabled={isDisabled}
           isLoading={isCalculating}
           startContent={!isCalculating ? <span>↗</span> : undefined}
         >
