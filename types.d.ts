@@ -22,5 +22,3 @@ declare global {
     Highcharts: typeof HighchartsDefault;
   }
 }
-
-declare module "jotai-devtools/styles.css";

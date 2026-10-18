@@ -6,7 +6,6 @@ const nextConfig = {
   eslint: {
     dirs: [".", ".storybook"],
   },
-  transpilePackages: ["jotai-devtools"],
   webpack: (config) => {
     // Grab the existing rule that handles SVG imports
     const fileLoaderRule = config.module.rules.find((rule) =>
@@ -39,8 +38,7 @@ const nextConfig = {
     "/api/**/*": ["./rules/**/*"],
   },
   experimental: {
-    swcPlugins: [["@swc-jotai/debug-label", {}]],
-    optimizePackageImports: ["@heroui/react", "fp-ts", "zod", "~/shared/ui"],
+    optimizePackageImports: ["@heroui/react", "zod", "~/shared/ui"],
   },
 };
 

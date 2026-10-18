@@ -5,13 +5,7 @@ import Script from "next/script";
 import { cx } from "~/shared/style";
 
 import { MainLayout } from "./_components";
-import {
-  JotaiProvider,
-  MotionProvider,
-  HeroUIProvider,
-  OverlayProvider,
-  QueryProvider,
-} from "./_components/providers";
+import { MotionProvider, HeroUIProvider } from "./_components/providers";
 
 import "./globals.css";
 
@@ -45,15 +39,9 @@ export default function RootLayout({
       <GoogleAnalytics gaId={process.env.GA4_ID!} />
       <body>
         <MotionProvider>
-          <JotaiProvider>
-            <HeroUIProvider>
-              <QueryProvider>
-                <OverlayProvider>
-                  <MainLayout>{children}</MainLayout>
-                </OverlayProvider>
-              </QueryProvider>
-            </HeroUIProvider>
-          </JotaiProvider>
+          <HeroUIProvider>
+            <MainLayout>{children}</MainLayout>
+          </HeroUIProvider>
         </MotionProvider>
 
         <Script
