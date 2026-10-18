@@ -106,14 +106,6 @@ cmd_status() {
   dc ps
 }
 
-## migrate ─ Prisma DB 스키마 동기화 (db push)
-cmd_migrate() {
-  check_env
-  step "Prisma DB 스키마 동기화"
-  dc up -d db
-  dc run --rm migrate
-  success "마이그레이션 완료"
-}
 
 ## clean ─ 컨테이너 + 로컬 빌드 이미지 삭제
 cmd_clean() {
@@ -156,7 +148,6 @@ usage() {
   printf "  ${GREEN}%-14s${NC} %s\n" "restart"     "서비스 재시작 (빌드 없음)"
   printf "  ${GREEN}%-14s${NC} %s\n" "logs [svc]"  "로그 스트림  (예: logs app)"
   printf "  ${GREEN}%-14s${NC} %s\n" "status"      "컨테이너 상태 확인"
-  printf "  ${GREEN}%-14s${NC} %s\n" "migrate"     "Prisma 마이그레이션 실행"
   printf "  ${GREEN}%-14s${NC} %s\n" "clean"       "컨테이너 + 로컬 빌드 이미지 삭제"
   printf "  ${GREEN}%-14s${NC} %s\n" "dev"         "개발 모드 (hot reload, 소스코드 마운트)"
   echo ""
@@ -184,7 +175,6 @@ case "$COMMAND" in
   restart)          cmd_restart ;;
   logs)             cmd_logs "${1:-}" ;;
   status|ps)        cmd_status ;;
-  migrate)          cmd_migrate ;;
   clean)            cmd_clean ;;
   dev)              cmd_dev ;;
   help|-h|--help)   usage ;;

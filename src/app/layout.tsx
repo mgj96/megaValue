@@ -16,13 +16,12 @@ import {
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "메수라이브 - 메이플 시뮬레이터, 계산기",
-  description: "메수라이브, 각종 메이플 시뮬레이터와 기댓값 계산기",
+  title: "메이플 장비 진단",
+  description: "캐릭터 장비의 스타포스·잠재능력을 진단하고 AI에 물어볼 프롬프트를 만들어 줍니다",
   openGraph: {
-    title: "메수라이브 - 메플 시뮬레이터, 계산기",
-    description: "메수라이브, 각종 메이플 시뮬레이터와 기댓값 계산기",
-    url: "https://mesu.live",
-    siteName: "메수라이브",
+    title: "메이플 장비 진단",
+    description: "캐릭터 장비의 스타포스·잠재능력을 진단하고 AI에 물어볼 프롬프트를 만들어 줍니다",
+    siteName: "메이플 장비 진단",
   },
   other: {
     "google-adsense-account": process.env.NEXT_PUBLIC_GOOGLE_ADSENSE_ACCOUNT,

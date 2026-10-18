@@ -1,0 +1,96 @@
+# 스타포스 규칙 (초안) — 조회일 2026-10-18
+# 원칙: 공식 출처에서 직접 확인한 수치만 기재. 확인 못 한 것은 TODO.
+#
+# [중요 경고] 2026-03-19 업데이트로 "스타캐치 삭제, 스타캐치 성공 시 올라가던 성공 확률은 항상 적용"으로 변경됨.
+#   출처: https://m.maplestory.nexon.com/News/Update/799  (강화 개편 항목)
+#   아래 15~29성 표는 2025-03-13 테스트월드 공지 값이며, 2026-03 개편 후에도 동일한지
+#   공식 문서에서 확인하지 못했다. (스타캐치 보정 포함 여부 불명) → 확정 전 게임 내 강화 UI와 대조 필요.
+
+version: draft-2026-10-18
+
+# 장비 레벨별 최대 스타포스
+# 출처: https://maplestory.nexon.com/Guide/N23GameInformation/Articles/412
+max_star_by_level:
+  - { level_min: 0,   level_max: 94,  max_star: 5 }
+  - { level_min: 95,  level_max: 107, max_star: 8 }
+  - { level_min: 108, level_max: 117, max_star: 10 }
+  - { level_min: 118, level_max: 127, max_star: 15 }
+  - { level_min: 128, level_max: 137, max_star: 20 }
+  - { level_min: 138, level_max: null, max_star: 30 }   # null = 상한 없음(138 이상)
+
+# 구간 규칙
+# 출처: https://maplestory.nexon.com/Guide/N23GameInformation/Articles/412
+rules:
+  fail_never_drops_star: true         # 모든 단계에서 실패해도 단계 하락 없음 ("하락 방지 구간: 모든 단계")
+  destroy_possible_from_star: 15      # 14성 이하는 파괴 없음, 15성 이상 파괴 가능
+  destroy_guard_available_stars: [15, 16, 17]   # 파괴 방지 설정 가능 구간(현행 가이드 기준)
+  # 파괴 방지 "추가" 비용 = 기본 메소의 200% (기본 비용에 더해 별도 소모 → 총 3배. 포크 코드도 base + base*2)
+  # 출처(테스트월드 2025-03-13 "파괴 방지 비용 100%→200%"): https://maplestory.nexon.com/testworld/news/update/88
+  # 주의: "추가 비용"이라는 해석(총 3배)은 공지 문구 + 포크 코드로 추정한 것. 게임 내 UI로 확인 필요.
+  destroy_guard_extra_cost_multiplier: 2.0
+  # 슈페리얼 장비는 별도 규칙(하락 방지 없음, 파괴 방지 불가, 5성부터 파괴 가능, 최대 성 수 상이)
+  # 출처: https://maplestory.nexon.com/Guide/N23GameInformation/Articles/412
+  # TODO: 슈페리얼 장비 성공/파괴 확률표 — 출처 미확인. V1에서 제외 권장.
+
+# 15~29성 확률 (%) — 출처: https://maplestory.nexon.com/testworld/news/update/88  (2025-03-13, 스타포스 개편)
+# 위 경고 참조: 2026-03 개편 반영 여부 미확인
+probabilities_15_to_29:
+  15: { success: 30.00, maintain: 67.90, destroy: 2.10 }
+  16: { success: 30.00, maintain: 67.90, destroy: 2.10 }
+  17: { success: 15.00, maintain: 78.20, destroy: 6.80 }
+  18: { success: 15.00, maintain: 78.20, destroy: 6.80 }
+  19: { success: 15.00, maintain: 76.50, destroy: 8.50 }
+  20: { success: 30.00, maintain: 59.50, destroy: 10.50 }
+  21: { success: 15.00, maintain: 72.25, destroy: 12.75 }
+  22: { success: 15.00, maintain: 68.00, destroy: 17.00 }
+  23: { success: 10.00, maintain: 72.00, destroy: 18.00 }
+  24: { success: 10.00, maintain: 72.00, destroy: 18.00 }
+  25: { success: 10.00, maintain: 72.00, destroy: 18.00 }
+  26: { success: 7.00,  maintain: 74.40, destroy: 18.60 }
+  27: { success: 5.00,  maintain: 76.00, destroy: 19.00 }
+  28: { success: 3.00,  maintain: 77.60, destroy: 19.40 }
+  29: { success: 1.00,  maintain: 79.20, destroy: 19.80 }
+
+# ─── 아래 두 블록은 [비공식] 출처: 사용자 포크 https://github.com/mgj96/megaValue (원본 kurateh/mesulive, AGPL-3.0)
+#     파일: src/entities/starforce/utils.ts (getProbTable / getCosts), 포크 최종 커밋 2026-03-16 (3/19 개편 이전)
+#     공식 문서에는 0~14성 확률표와 메소 비용식이 없어(접근 가능한 범위), 이 값은 "공식 확인 전"이다.
+#     교차 검증: 같은 파일의 15~29성 값은 위 공식 공지 표와 전부 일치 → 확률 쪽 신뢰도는 높음. 비용식은 공식 대조 불가.
+#     AGPL 코드를 복사한 것이 아니라 수치만 옮김. 서비스에 코드를 가져오려면 라이선스 별도 검토 필요.
+
+# 0~14성 확률 (%) — 비공식(포크). 파괴 없음.
+probabilities_0_to_14:   # source_grade: community
+  0:  { success: 95, maintain: 5,  destroy: 0 }
+  1:  { success: 90, maintain: 10, destroy: 0 }
+  2:  { success: 85, maintain: 15, destroy: 0 }
+  3:  { success: 85, maintain: 15, destroy: 0 }
+  4:  { success: 80, maintain: 20, destroy: 0 }
+  5:  { success: 75, maintain: 25, destroy: 0 }
+  6:  { success: 70, maintain: 30, destroy: 0 }
+  7:  { success: 65, maintain: 35, destroy: 0 }
+  8:  { success: 60, maintain: 40, destroy: 0 }
+  9:  { success: 55, maintain: 45, destroy: 0 }
+  10: { success: 50, maintain: 50, destroy: 0 }
+  11: { success: 45, maintain: 55, destroy: 0 }
+  12: { success: 40, maintain: 60, destroy: 0 }
+  13: { success: 35, maintain: 65, destroy: 0 }
+  14: { success: 30, maintain: 70, destroy: 0 }
+
+# 스타캐치: 포크는 성공확률 ×1.05 (나머지 확률은 비례 축소)로 모델링. 2026-03-19에 스타캐치가 삭제되고
+# "상승분이 항상 적용"으로 바뀌었으므로, 현행 표시 확률이 base 인지 base×1.05 인지 공식 미확인 → 결정 필요.
+starcatch_success_multiplier: 1.05   # source_grade: community, 현행 적용 여부 미확인
+
+# 강화 1회 기본 메소 비용 — 비공식(포크 mgj96/megaValue 의 getCosts, 원본 kurateh/mesulive, AGPL-3.0).
+# 식은 데이터가 아니라 코드이므로 src/starforce.ts 의 getCosts 한 곳에만 둔다(중복 방지). 여기에는 두지 않음.
+# 공식 공지의 "17~19성, 21성 비용 증가"와 방향은 일치하지만 수치 대조는 못 했다.
+# 파괴 방지 시 추가 비용 = 기본 비용의 200% (위 destroy_guard_extra_cost_multiplier).
+# 할인(MVP/PC방)은 V1에서 가정하지 않는다(공식 확인은 PC방 5%뿐).
+meso_cost:
+  source_grade: community
+  implemented_in: src/starforce.ts#getCosts
+
+# TODO: 성 단계별 능력치(주스탯/공·마) 상승 폭 — 공식 문서 미확인. 오픈 API 응답
+#       item_starforce_option 은 "현재 누적값"만 제공하며 단계별 증가 테이블은 없음.
+stat_gain_per_star: TODO
+
+# TODO: 찬스타임(연속 2회 하락 후 100%) — 현행 가이드에서 "하락 방지 구간: 모든 단계"로 바뀌어
+#       하락 자체가 없으므로 현행 적용 여부 불명. 이벤트 효과(썬데이 메이플 등)는 V1 제외.

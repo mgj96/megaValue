@@ -1,1 +1,0 @@
-export { SettingSectionContent } from "./SettingSectionContent";

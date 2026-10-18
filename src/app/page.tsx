@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import { ChatScreen } from "./_components/ChatScreen";
 
 export default function Home() {
-  redirect("/sim/item-scouter");
+  return <ChatScreen />;
 }

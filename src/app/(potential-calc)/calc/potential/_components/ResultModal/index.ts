@@ -1,1 +1,0 @@
-export { ResultModal } from "./ResultModal";

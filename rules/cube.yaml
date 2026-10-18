@@ -1,0 +1,78 @@
+# 큐브(잠재능력 재설정) 규칙 (초안) — 조회일 2026-10-18
+# 원칙: 공식 출처에서 직접 확인한 수치만 기재. 확인 못 한 것은 TODO.
+# 단위: % (공식 표기 그대로. 공식은 게임산업법 시행령에 따라 반올림 표기)
+#
+# 공식 페이지
+#   레드        https://maplestory.nexon.com/Guide/OtherProbability/cube/red
+#   블랙/프라임 https://maplestory.nexon.com/Guide/OtherProbability/cube/black
+#   에디셔널    https://maplestory.nexon.com/Guide/OtherProbability/cube/addi
+# 신규 큐브(골드/실버/브론즈 에디셔널): 옵션/등급 상승 확률이 명장/장인/수상한 에디셔널과 동일(보장 시스템 없음)
+#   출처: https://m.maplestory.nexon.com/News/Update/799
+
+version: draft-2026-10-18
+
+# 등급 상승 확률 (%)
+grade_up:
+  red:      # https://maplestory.nexon.com/Guide/OtherProbability/cube/red
+    rare_to_epic: 6.0000002444
+    epic_to_unique: 1.8000
+    unique_to_legendary: 0.3000
+  black:    # https://maplestory.nexon.com/Guide/OtherProbability/cube/black
+    rare_to_epic: 15.0000001275
+    epic_to_unique: 3.5000
+    unique_to_legendary: 1.4000
+  additional:   # https://maplestory.nexon.com/Guide/OtherProbability/cube/addi  (에디셔널 큐브 / 화이트 에디셔널 큐브 열)
+    rare_to_epic: 4.7619
+    epic_to_unique: 1.9608
+    unique_to_legendary: 0.7000
+  # 같은 페이지의 "에디셔널 잠재능력 재설정" 열은 별도 수단(큐브 아님): 2.3810 / 0.9804 / 0.7000
+
+# 등급 상승 보장 횟수 (재설정 방식별·등급별 저장, 월드 내 캐릭터 간 공유 — 블랙 페이지 주석)
+pity:
+  red:        { rare_to_epic: 25, epic_to_unique: 83,  unique_to_legendary: 500 }   # .../cube/red
+  black:      { rare_to_epic: 10, epic_to_unique: 42,  unique_to_legendary: 107 }   # .../cube/black
+  additional: { rare_to_epic: 31, epic_to_unique: 76,  unique_to_legendary: 214 }   # .../cube/addi (에디셔널/화이트 에디셔널 큐브)
+  # 프라임 큐브는 레전드리 전용이라 등급 상승/보장 대상 아님 (.../cube/black 주석)
+
+# 2·3번째 옵션이 "현재 등급과 같은 등급 풀"에서 나올 확률 (%). 나머지는 한 단계 낮은 등급 풀("노멀" 행 = 100 - 값)
+# 첫 번째 옵션은 항상 100% 현재 등급.
+option_slot_same_grade:
+  red:      { second: 10.0000, third: 1.0000 }     # .../cube/red   (등급 무관 동일)
+  black:    { second: 20.0000, third: 5.0000 }     # .../cube/black (등급 무관 동일)
+  additional:                                       # .../cube/addi  (등급별로 다름)
+    second: { rare: 1.9608, epic: 4.7619, unique: 1.9608, legendary: 0.4975 }
+    third:  { rare: 1.9608, epic: 4.7619, unique: 1.9608, legendary: 0.4975 }
+
+# 옵션 출현 확률표 (장비종류 × 등급 × 레벨 × 큐브 × 슬롯 조합별로 별도 표) — 공식 페이지의 "검색" 폼에서 조회됨.
+# 아래는 구조 확인용 표본 1개만 수록. 나머지는 TODO(전수 수집은 직업별 유효 옵션 확정 후 필요한 조합만).
+option_tables:
+  - source: https://maplestory.nexon.com/Guide/OtherProbability/cube/black   # 검색: 레전드리 / 무기 / 200제
+    cube: black
+    grade: legendary
+    equip: weapon
+    level: 200
+    first:    # 현재 등급(레전드리) 풀
+      "STR +12%": 9.7561
+      "DEX +12%": 9.7561
+      "INT +12%": 9.7561
+      "LUK +12%": 9.7561
+      "공격력 +12%": 4.8780
+      "마력 +12%": 4.8780
+      "크리티컬 확률 +12%": 4.8780
+      "데미지 +12%": 4.8780
+      "올스탯 +9%": 7.3171
+      "공격력 +32": 4.8780
+      "마력 +32": 4.8780
+      "몬스터 방어율 무시 +35%": 4.8780
+      "몬스터 방어율 무시 +40%": 4.8780
+      "보스 몬스터 데미지 +35%": 9.7561
+      "보스 몬스터 데미지 +40%": 4.8780
+    # second/third: 위 풀(×해당 슬롯 same_grade 비율)과 유니크 풀(×(1-비율))의 합성이며 공식이 합산 표로 제공.
+    # TODO: second / third 표는 필요 시 동일 페이지 검색 결과에서 수집
+
+# TODO: 레드/에디셔널/프라임 등 다른 큐브·장비종류·레벨 조합의 옵션 표
+# TODO: 큐브 메소 가격(공식 메소 가격) — 공식 문서에서 "재설정 시 소모 메소" 표를 찾지 못함
+#       (블랙/레드 등은 캐시·이벤트 아이템이라 메소 환산 기준 자체가 불명. 아래 "결정할 것" 참조)
+cube_meso_cost: TODO
+# TODO: 명장/장인/수상한 에디셔널 큐브 확률 (골드/실버/브론즈의 기준) — 해당 페이지 미조회
+#       https://gi.maplestory.nexon.com/Guide/OtherProbability/cube/master 가 검색 결과에 있음(미확인)

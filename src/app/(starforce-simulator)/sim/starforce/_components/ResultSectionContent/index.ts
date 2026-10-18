@@ -1,1 +1,0 @@
-export { ResultSectionContent } from "./ResultSectionContent";

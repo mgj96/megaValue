@@ -36,7 +36,7 @@ const nextConfig = {
   },
 
   outputFileTracingIncludes: {
-    "/api/**/*": ["./node_modules/.prisma/client/**/*"],
+    "/api/**/*": ["./rules/**/*"],
   },
   experimental: {
     swcPlugins: [["@swc-jotai/debug-label", {}]],
