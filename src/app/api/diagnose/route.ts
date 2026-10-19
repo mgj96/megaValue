@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { buildDiagnosisPrompt, buildReply, diagnoseItems } from "~/diagnose";
+import { buildDiagnosisPrompt, buildReply, diagnoseItems, recommendSlots } from "~/diagnose";
 import { getEquipment } from "~/nexon";
 import { loadStarforceRules } from "~/rules";
 import { sampleEquipment } from "~/testCase";
@@ -38,6 +38,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       reply: buildReply(equipment, diagnoses),
+      recommendations: recommendSlots(diagnoses),
       prompt: buildDiagnosisPrompt(equipment, diagnoses, rules),
     });
   } catch (error) {

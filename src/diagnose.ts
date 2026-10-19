@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { formatMeso, formatPct } from "./format";
+import { GUARD_STARS } from "./game";
 import type { Equipment } from "./nexon";
 import { loadRule, type StarforceRules } from "./rules";
 import {
@@ -78,6 +79,76 @@ export const diagnoseItems = (
 
 const optionsOf = (potential: Item["potential"]): string =>
   potential.options.filter(Boolean).join(" / ") || "없음";
+
+export type SlotRecommendation = {
+  slot: string;
+  name: string;
+  headline: string;
+  reasons: string[];
+  /** 스타포스를 더 올릴 수 있는 부위만. 다음 1성 기대 메소가 적은 순. */
+  rank: number | null;
+};
+
+/**
+ * 부위별 추천. 코드가 규칙으로 만든 고정 문장이다(LLM 없음).
+ * 능력치 상승 폭 데이터가 없어 순위는 효율이 아니라 "다음 1성 기대 메소가 적은 순"이다.
+ */
+export const recommendSlots = (diagnoses: ItemDiagnosis[]): SlotRecommendation[] => {
+  const ranked = diagnoses
+    .filter((d) => d.next)
+    .sort((a, b) => a.next!.expectedMeso - b.next!.expectedMeso);
+
+  const recommendations = diagnoses.map<SlotRecommendation>((d) => {
+    const reasons: string[] = [];
+    let headline: string;
+
+    if (d.next) {
+      const n = d.next;
+      headline = `스타포스 ★${d.star}→★${d.star + 1}`;
+      reasons.push(
+        `1회 ${formatMeso(n.mesoPerAttempt)} 메소, 성공 ${formatPct(n.successPct)}, 파괴 ${formatPct(n.destroyPct)}, 기대 ${formatMeso(n.expectedMeso)} 메소`,
+      );
+      if (n.destroyPct === 0) {
+        reasons.push("파괴가 없는 구간이에요.");
+      } else {
+        if (GUARD_STARS.includes(d.star)) {
+          reasons.push("파괴 방지를 걸 수 있는 구간이에요(기본 비용의 3배).");
+        }
+        if (n.recovery) {
+          reasons.push(
+            `파괴되면 ${n.recovery.cheaper}가 유리해요 (확정복구 ${formatMeso(n.recovery.restoreCost)} / 12성 복구 ${formatMeso(n.recovery.noRestoreCost)}).`,
+          );
+        }
+      }
+    } else if (d.maxStar !== null && d.star >= d.maxStar) {
+      headline = "스타포스 완료";
+      reasons.push(`최대 ★${d.maxStar}에 도달했어요.`);
+    } else {
+      headline = "스타포스 대상 아님";
+      reasons.push("레벨 정보가 없거나 스타포스를 못 하는 장비예요.");
+    }
+
+    if (d.potential.grade) {
+      if (d.potential.grade !== "레전드리") {
+        reasons.push(`윗잠재 등급: ${d.potential.grade} — 큐브로 올릴 여지가 있어요.`);
+      }
+      if (!d.additionalPotential.grade) reasons.push("에디셔널 잠재가 비어 있어요.");
+    }
+
+    const index = ranked.indexOf(d);
+    return {
+      slot: d.slot,
+      name: d.name,
+      headline,
+      reasons,
+      rank: index >= 0 ? index + 1 : null,
+    };
+  });
+
+  return recommendations.sort(
+    (a, b) => (a.rank ?? Infinity) - (b.rank ?? Infinity),
+  );
+};
 
 /** 대화창에 보여줄 설명. LLM 없이 코드가 만든 고정 문장이다. */
 export const buildReply = (

@@ -6,6 +6,8 @@ import { PageTitle } from "~/components/page-title";
 import { SectionContainer } from "~/components/section-container";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
+import type { SlotRecommendation } from "~/diagnose";
 import { cx } from "~/shared/style";
 
 type Message = { role: "user" | "assistant"; text: string };
@@ -22,6 +24,7 @@ export const ChatScreen = () => {
     },
   ]);
   const [prompt, setPrompt] = useState<string | null>(null);
+  const [recommendations, setRecommendations] = useState<SlotRecommendation[]>([]);
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -46,6 +49,7 @@ export const ChatScreen = () => {
     push({ role: "user", text: `${characterName.trim()} 장비 진단해줘` });
     setLoading(true);
     setPrompt(null);
+    setRecommendations([]);
     setCopied(false);
 
     try {
@@ -54,10 +58,16 @@ export const ChatScreen = () => {
         headers: { "content-type": "application/json", "x-nxopen-api-key": apiKey.trim() },
         body: JSON.stringify({ characterName: characterName.trim() }),
       });
-      const data = (await response.json()) as { reply?: string; prompt?: string; error?: string };
+      const data = (await response.json()) as {
+        reply?: string;
+        prompt?: string;
+        recommendations?: SlotRecommendation[];
+        error?: string;
+      };
       if (!response.ok || !data.reply) throw new Error(data.error ?? "조회에 실패했어요.");
       push({ role: "assistant", text: data.reply });
       setPrompt(data.prompt ?? null);
+      setRecommendations(data.recommendations ?? []);
     } catch (error) {
       push({
         role: "assistant",
@@ -82,6 +92,64 @@ export const ChatScreen = () => {
     <div className="mx-auto flex max-w-2xl flex-col gap-4">
       <PageTitle>메이플 장비 진단</PageTitle>
 
+      {prompt && (
+        <SectionContainer>
+          <Tabs defaultValue="recommend">
+            <TabsList className="mb-2 grid w-full grid-cols-2">
+              <TabsTrigger value="recommend">부위별 추천</TabsTrigger>
+              <TabsTrigger value="prompt">프롬프트</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="recommend">
+              <ul className="flex flex-col gap-3">
+                {recommendations.map((r) => (
+                  <li key={`${r.slot}-${r.name}`} className="rounded-lg border p-3">
+                    <div className="flex items-baseline justify-between gap-2">
+                      <p className="text-sm font-semibold">
+                        {r.rank !== null && (
+                          <span className="mr-2 rounded-md bg-primary px-1.5 py-0.5 text-xs text-primary-foreground">
+                            {r.rank}
+                          </span>
+                        )}
+                        {r.slot} · {r.headline}
+                      </p>
+                      <p className="truncate text-xs text-muted-foreground">{r.name}</p>
+                    </div>
+                    <ul className="mt-1.5 list-disc pl-5 text-xs leading-relaxed text-foreground/80">
+                      {r.reasons.map((reason) => (
+                        <li key={reason}>{reason}</li>
+                      ))}
+                    </ul>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-3 text-xs text-muted-foreground">
+                순위는 &quot;다음 1성 기대 메소가 적은 순&quot;이에요. 능력치 상승 폭 데이터가 아직 없어 효율 순위는
+                아니에요. 계산은 비공식 비용식 기반이에요.
+              </p>
+            </TabsContent>
+
+            <TabsContent value="prompt">
+              <p className="mb-3 text-sm text-muted-foreground">
+                아래 진단 프롬프트를 복사해서 Gemini(또는 다른 AI)에 붙여 넣으면, 이 장비의 계산값과 규칙을
+                근거로 판단해 줘요. 데이터에 없는 수치는 모른다고 답하도록 지시해 두었어요.
+              </p>
+              <div className="mb-3 flex flex-wrap gap-2">
+                <Button onClick={copyPrompt}>{copied ? "복사됨" : "프롬프트 복사"}</Button>
+                <Button variant="secondary" asChild>
+                  <a href={GEMINI_URL} target="_blank" rel="noreferrer">
+                    Gemini 열기
+                  </a>
+                </Button>
+              </div>
+              <pre className="max-h-80 overflow-auto whitespace-pre-wrap rounded-xl bg-muted p-3 text-xs">
+                {prompt}
+              </pre>
+            </TabsContent>
+          </Tabs>
+        </SectionContainer>
+      )}
+
       <SectionContainer className="flex flex-col gap-3">
         {messages.map((message, index) => (
           <div
@@ -103,29 +171,6 @@ export const ChatScreen = () => {
         )}
         <div ref={bottomRef} />
       </SectionContainer>
-
-      {prompt && (
-        <SectionContainer title="Gemini에게 물어보기">
-          <p className="mb-3 text-sm text-muted-foreground">
-            아래 진단 프롬프트를 복사해서 Gemini(또는 다른 AI)에 붙여 넣으면, 이 장비의 계산값과 규칙을
-            근거로 판단해 줘요. 데이터에 없는 수치는 모른다고 답하도록 지시해 두었어요.
-          </p>
-          <div className="mb-3 flex flex-wrap gap-2">
-            <Button onClick={copyPrompt}>{copied ? "복사됨" : "프롬프트 복사"}</Button>
-            <Button variant="secondary" asChild>
-              <a href={GEMINI_URL} target="_blank" rel="noreferrer">
-                Gemini 열기
-              </a>
-            </Button>
-          </div>
-          <details>
-            <summary className="cursor-pointer text-sm text-muted-foreground">프롬프트 미리보기</summary>
-            <pre className="mt-2 max-h-80 overflow-auto whitespace-pre-wrap rounded-xl bg-muted p-3 text-xs">
-              {prompt}
-            </pre>
-          </details>
-        </SectionContainer>
-      )}
 
       <SectionContainer>
         <form onSubmit={onSubmit} className="flex flex-col gap-3">

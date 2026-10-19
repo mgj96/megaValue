@@ -42,7 +42,7 @@ export default function RootLayout({
       <GoogleAnalytics gaId={process.env.GA4_ID!} />
       <body>
         <MotionProvider>
-          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
             <MainLayout>{children}</MainLayout>
           </ThemeProvider>
         </MotionProvider>
