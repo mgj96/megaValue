@@ -55,7 +55,7 @@ export default async function StarforcePage({
                 table: rules.table,
                 star: from,
                 spareCost,
-                restore: rules.restoreOf(level, from),
+                restoreOf: rules.restoreOf,
               })
             : null;
         return { from, row, attempt: costs[from], expected: expected[from], recovery };
@@ -151,8 +151,8 @@ export default async function StarforcePage({
           </div>
           <p className="mt-3 text-xs text-default-500">
             {RESTORE_STAR}성 복구는 파괴되면 {RESTORE_STAR}성으로 돌아가 그 성까지 다시 올리는 기대 메소(대체 장비 1개 포함),
-            확정복구는 터진 성 그대로 복구하는 재료 비용이에요. 확정복구는 15~22성, 130·135·140·145·150·160·200·250제만
-            표가 있어 나머지는 &quot;-&quot;예요. 비용식과 확정복구 표는 비공식 출처(원본 mesulive)이고, 복구 이벤트
+            확정복구는 터진 성 그대로 복구하는 재료 비용이에요. 23성 이상에서 파괴되면 22성으로 설정되므로 22성까지
+            돌아오는 비용을 비교해요. 확정복구는 130·135·140·145·150·160·200·250제만 표가 있어 나머지는 &quot;-&quot;예요. 비용식과 확정복구 표는 비공식 출처(원본 mesulive)이고, 복구 이벤트
             할인은 반영하지 않았어요.
           </p>
         </SectionContainer>

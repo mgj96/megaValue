@@ -97,8 +97,12 @@ export type RecoveryComparison = {
   cheaper: "확정복구" | "12성 복구";
 };
 
+/** 23성 이상에서 파괴되면 22성으로 설정되므로 확정복구는 22성까지만 있다. */
+export const RESTORE_MAX_STAR = 22;
+
 /**
  * star 에서 파괴됐을 때 확정복구와 12성 복구 중 어느 쪽이 싼지 비교한다.
+ * 23성 이상은 22성까지 돌아오는 비용을 비교한다(그 위는 두 경로가 똑같이 올라가므로 상쇄된다).
  * 확정복구 재료가 없는 레벨·성이면 null.
  */
 export const compareRecovery = ({
@@ -106,18 +110,20 @@ export const compareRecovery = ({
   table,
   star,
   spareCost,
-  restore,
+  restoreOf,
 }: {
   equipLevel: number;
   table: StarRow[];
   star: number;
   spareCost: number;
-  restore: RestoreCost | null;
+  restoreOf: (level: number, star: number) => RestoreCost | null;
 }): RecoveryComparison | null => {
+  const target = Math.min(star, RESTORE_MAX_STAR);
+  const restore = restoreOf(equipLevel, target);
   if (!restore) return null;
 
   let climb = 0;
-  for (let from = RESTORE_STAR; from < star; from++) {
+  for (let from = RESTORE_STAR; from < target; from++) {
     climb += expectedCostOfStep({ equipLevel, table, fromStar: from, spareCost });
   }
 

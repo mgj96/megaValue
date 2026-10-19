@@ -72,7 +72,7 @@ describe("compareRecovery", () => {
       table: rules.table,
       star,
       spareCost,
-      restore: rules.restoreOf(level, star),
+      restoreOf: rules.restoreOf,
     });
 
   it("대체 장비가 공짜면 낮은 성은 12성 복구, 높은 성은 확정복구가 싸다", () => {
@@ -94,7 +94,11 @@ describe("compareRecovery", () => {
 
   it("표에 없는 레벨·성이면 null", () => {
     expect(compare(17, 0, 100)).toBeNull();
-    expect(compare(25, 0)).toBeNull();
     expect(compare(20, 0, 130)).toBeNull();
+  });
+
+  it("23성 이상은 22성까지 돌아오는 비용을 비교한다", () => {
+    expect(compare(27, 0)).toEqual(compare(22, 0));
+    expect(compare(29, 0)?.cheaper).toBe("확정복구");
   });
 });

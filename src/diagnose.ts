@@ -65,7 +65,7 @@ export const diagnoseItems = (
                     table,
                     star,
                     spareCost: 0,
-                    restore: restoreOf(item.level, star),
+                    restoreOf,
                   })
                 : null,
           }
