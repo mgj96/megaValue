@@ -4,7 +4,7 @@ import withBundleAnalyzer from "@next/bundle-analyzer";
 const nextConfig = {
   output: "standalone",
   eslint: {
-    dirs: [".", ".storybook"],
+    dirs: ["."],
   },
   webpack: (config) => {
     // Grab the existing rule that handles SVG imports
@@ -38,7 +38,7 @@ const nextConfig = {
     "/api/**/*": ["./rules/**/*"],
   },
   experimental: {
-    optimizePackageImports: ["@heroui/react", "zod", "~/shared/ui"],
+    optimizePackageImports: ["zod", "lucide-react"],
   },
 };
 

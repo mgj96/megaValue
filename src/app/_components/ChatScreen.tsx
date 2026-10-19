@@ -2,8 +2,11 @@
 
 import { useRef, useState, type FormEvent } from "react";
 
+import { PageTitle } from "~/components/page-title";
+import { SectionContainer } from "~/components/section-container";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
 import { cx } from "~/shared/style";
-import { Button, Input, PageTitle, SectionContainer } from "~/shared/ui";
 
 type Message = { role: "user" | "assistant"; text: string };
 
@@ -86,15 +89,15 @@ export const ChatScreen = () => {
             className={cx(
               "max-w-[90%] whitespace-pre-wrap rounded-2xl px-4 py-3 text-sm leading-relaxed",
               message.role === "user"
-                ? "self-end bg-primary text-white"
-                : "self-start bg-default-100 text-default-800",
+                ? "self-end bg-primary text-primary-foreground"
+                : "self-start bg-muted text-foreground/90",
             )}
           >
             {message.text}
           </div>
         ))}
         {loading && (
-          <div className="self-start rounded-2xl bg-default-100 px-4 py-3 text-sm text-default-500">
+          <div className="self-start rounded-2xl bg-muted px-4 py-3 text-sm text-muted-foreground">
             장비를 불러오는 중이에요…
           </div>
         )}
@@ -103,21 +106,21 @@ export const ChatScreen = () => {
 
       {prompt && (
         <SectionContainer title="Gemini에게 물어보기">
-          <p className="mb-3 text-sm text-default-600">
+          <p className="mb-3 text-sm text-muted-foreground">
             아래 진단 프롬프트를 복사해서 Gemini(또는 다른 AI)에 붙여 넣으면, 이 장비의 계산값과 규칙을
             근거로 판단해 줘요. 데이터에 없는 수치는 모른다고 답하도록 지시해 두었어요.
           </p>
           <div className="mb-3 flex flex-wrap gap-2">
-            <Button color="primary" onPress={copyPrompt}>
-              {copied ? "복사됨" : "프롬프트 복사"}
-            </Button>
-            <Button as="a" href={GEMINI_URL} target="_blank" rel="noreferrer" variant="flat">
-              Gemini 열기
+            <Button onClick={copyPrompt}>{copied ? "복사됨" : "프롬프트 복사"}</Button>
+            <Button variant="secondary" asChild>
+              <a href={GEMINI_URL} target="_blank" rel="noreferrer">
+                Gemini 열기
+              </a>
             </Button>
           </div>
           <details>
-            <summary className="cursor-pointer text-sm text-default-500">프롬프트 미리보기</summary>
-            <pre className="mt-2 max-h-80 overflow-auto whitespace-pre-wrap rounded-xl bg-default-100 p-3 text-xs">
+            <summary className="cursor-pointer text-sm text-muted-foreground">프롬프트 미리보기</summary>
+            <pre className="mt-2 max-h-80 overflow-auto whitespace-pre-wrap rounded-xl bg-muted p-3 text-xs">
               {prompt}
             </pre>
           </details>
@@ -126,22 +129,28 @@ export const ChatScreen = () => {
 
       <SectionContainer>
         <form onSubmit={onSubmit} className="flex flex-col gap-3">
-          <Input
-            label="캐릭터 이름"
-            value={characterName}
-            onValueChange={setCharacterName}
-            autoComplete="off"
-          />
-          <Input
-            label="넥슨 오픈 API 키"
-            type="password"
-            value={apiKey}
-            onValueChange={setApiKey}
-            autoComplete="off"
-            description="본인 키를 직접 입력하세요. 서버에 저장하지 않습니다."
-          />
-          <Button type="submit" color="primary" isLoading={loading}>
-            진단하기
+          <label className="flex flex-col gap-1.5 text-sm font-medium">
+            캐릭터 이름
+            <Input
+              value={characterName}
+              onChange={(event) => setCharacterName(event.target.value)}
+              autoComplete="off"
+            />
+          </label>
+          <label className="flex flex-col gap-1.5 text-sm font-medium">
+            넥슨 오픈 API 키
+            <Input
+              type="password"
+              value={apiKey}
+              onChange={(event) => setApiKey(event.target.value)}
+              autoComplete="off"
+            />
+            <span className="text-xs font-normal text-muted-foreground">
+              본인 키를 직접 입력하세요. 서버에 저장하지 않습니다.
+            </span>
+          </label>
+          <Button type="submit" disabled={loading}>
+            {loading ? "조회 중…" : "진단하기"}
           </Button>
         </form>
       </SectionContainer>

@@ -5,7 +5,7 @@ import Script from "next/script";
 import { cx } from "~/shared/style";
 
 import { MainLayout } from "./_components";
-import { MotionProvider, HeroUIProvider } from "./_components/providers";
+import { MotionProvider, ThemeProvider } from "./_components/providers";
 
 import "./globals.css";
 
@@ -23,7 +23,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#18181B",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#FAFAFA" },
+    { media: "(prefers-color-scheme: dark)", color: "#09090B" },
+  ],
 };
 
 export default function RootLayout({
@@ -32,16 +35,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko" className={cx("font-pretendard", "font-medium")}>
+    <html lang="ko" className={cx("font-pretendard", "font-medium")} suppressHydrationWarning>
       <head>
         <link rel="icon" href="/favicon.ico" />
       </head>
       <GoogleAnalytics gaId={process.env.GA4_ID!} />
       <body>
         <MotionProvider>
-          <HeroUIProvider>
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             <MainLayout>{children}</MainLayout>
-          </HeroUIProvider>
+          </ThemeProvider>
         </MotionProvider>
 
         <Script

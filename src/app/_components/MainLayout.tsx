@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 
+import { ThemeToggle } from "~/components/theme-toggle";
 import { cx } from "~/shared/style";
 
 import { Footer } from "./Footer";
@@ -15,7 +16,10 @@ export const MainLayout = ({ children, disableFooter }: Props) => {
   return (
     <div className="flex h-screen max-h-screen flex-col">
       <div className="relative flex h-0 flex-1 min-h-0">
-        <div className="h-full flex-1 overflow-y-auto bg-default-50">
+        <div className="h-full flex-1 overflow-y-auto bg-background">
+          <div className="flex justify-end px-4 pt-3">
+            <ThemeToggle />
+          </div>
           <div className={cx("p-4")}>
             {/* <Adsense
               adSlot="6642780063"

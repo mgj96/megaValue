@@ -16,12 +16,9 @@ const compat = new FlatCompat({
 
 export default [
   {
-    ignores: ["!**/.storybook", ".next", "node_modules"],
+    ignores: [".next", "node_modules"],
   },
-  ...compat.extends(
-    "plugin:@next/next/recommended",
-    "plugin:storybook/recommended",
-  ),
+  ...compat.extends("plugin:@next/next/recommended"),
   ...kurateh.configs.react,
   {
     rules: {
@@ -78,28 +75,6 @@ export default [
       ],
 
       "no-console": 1,
-      "no-restricted-imports": [
-        "error",
-        {
-          paths: [
-            {
-              name: "@heroui/react",
-              importNames: [
-                "Button",
-                "Checkbox",
-                "CheckboxGroup",
-                "Modal",
-                "ModalHeader",
-                "Radio",
-                "RadioGroup",
-                "Select",
-                "Input",
-              ],
-              message: 'Use the custom Button component from "~/shared/ui".',
-            },
-          ],
-        },
-      ],
     },
   },
   {

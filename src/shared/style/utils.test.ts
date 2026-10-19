@@ -1,11 +1,11 @@
-import { mergeClassNames } from "./utils";
+import { cn, cx } from "./utils";
 
-describe("mergeClassNames", () => {
-  it("should merge class names", () => {
-    expect(mergeClassNames({ a: "a" }, { a: "b" })).toEqual({ a: "a b" });
-    expect(mergeClassNames({ a: "a" }, { a: "b" }, { a: "c" })).toEqual({
-      a: "a b c",
-    });
-    expect(mergeClassNames({ a: "a" }, { b: "b" })).toEqual({ a: "a", b: "b" });
+describe("cx", () => {
+  it("합치되 충돌하는 Tailwind 클래스는 뒤의 것이 이긴다", () => {
+    expect(cx("p-2", false, "text-sm", "p-4")).toBe("text-sm p-4");
+  });
+
+  it("cn 은 cx 와 같다", () => {
+    expect(cn).toBe(cx);
   });
 });

@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-메이플스토리 장비 진단 웹앱 (Next.js 15 + HeroUI + Tailwind, pnpm). mesulive 포크를 `mcp-rebuild` 브랜치에서 재구성 중. (브랜치명은 MCP 서버였던 이력 때문이며 MCP는 제거됨.)
+메이플스토리 장비 진단 웹앱 (Next.js 15 + shadcn/ui(Radix) + Tailwind v3, pnpm). mesulive 포크를 `mcp-rebuild` 브랜치에서 재구성 중. (브랜치명은 MCP 서버였던 이력 때문이며 MCP는 제거됨.)
 
 ## 원칙
 
@@ -18,7 +18,8 @@
 - `src/diagnose.ts` 장비별 진단, 대화 문장, Gemini용 진단 프롬프트(필요한 규칙 행만 발췌).
 - `src/app/starforce/` 스타포스 테스트 페이지(`/starforce`)와 브라우저 저장 게임(`/starforce/game`, 로직은 `src/game.ts`). 게임 판매가는 원가 기반 가정값이고 계정·공유는 아직 없다.
 - `src/app/api/diagnose/route.ts` POST. `src/app/_components/ChatScreen.tsx` 화면.
-- 화면 틀·배포(`MainLayout`, `Footer`, `shared/ui`, Dockerfile, compose, `manage.sh`, 워크플로우)는 원본을 유지하되 Prisma/Postgres는 제거함.
+- UI: shadcn/ui(new-york, zinc, CSS 변수 토큰은 `src/app/globals.css`, 라이트/다크는 `next-themes`). 컴포넌트는 `src/components/ui/`, 조합 컴포넌트는 `src/components/`(`SectionContainer`, `PageTitle`, `ThemeToggle`, `AnimatedMeso`, `StarStrip`). `components.json`이 있어 새 컴포넌트는 `pnpm dlx shadcn@latest add <name>`로 추가한다(클라우드 샌드박스는 shadcn 레지스트리가 막혀 있어 소스를 직접 옮겼다). 색은 `bg-primary` 같은 토큰만 쓰고 hex를 직접 쓰지 않는다. 연출은 `tailwind.config.ts`의 `star-pop`·`shake`·`destroy-flash` 키프레임과 framer-motion, 모션 줄이기 설정은 `globals.css`에서 일괄 처리.
+- 배포(Dockerfile, compose, `manage.sh`, 워크플로우)는 원본을 유지하되 Prisma/Postgres, HeroUI, 스토리북은 제거함.
 
 ## 명령
 

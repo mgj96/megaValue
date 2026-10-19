@@ -3,7 +3,10 @@ import { z } from "zod";
 
 import { formatMeso, formatPct } from "~/format";
 import { loadStarforceRules } from "~/rules";
-import { Button, PageTitle, SectionContainer } from "~/shared/ui";
+import { PageTitle } from "~/components/page-title";
+import { SectionContainer } from "~/components/section-container";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
 import { compareRecovery, evaluateAttempt, expectedCostOfStep, getCosts } from "~/starforce";
 
 import { ExampleCard, RecoveryBars } from "./Charts";
@@ -21,8 +24,6 @@ const querySchema = z.object({
 
 const HUNDRED_MILLION = 100_000_000;
 
-const inputClass =
-  "w-full rounded-xl bg-default-100 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary";
 
 export default async function StarforcePage({
   searchParams,
@@ -85,33 +86,30 @@ export default async function StarforcePage({
         <form className="flex flex-wrap items-end gap-3">
           <label className="flex flex-1 flex-col gap-1 text-sm">
             장비 착용 레벨
-            <input
+            <Input
               name="level"
               type="number"
               defaultValue={query.success ? query.data.level : 200}
-              className={inputClass}
-            />
+                          />
           </label>
           <label className="flex flex-1 flex-col gap-1 text-sm">
             현재 성
-            <input
+            <Input
               name="star"
               type="number"
               defaultValue={query.success ? query.data.star : 17}
-              className={inputClass}
-            />
+                          />
           </label>
           <label className="flex flex-1 flex-col gap-1 text-sm">
             대체 장비 가격(억)
-            <input
+            <Input
               name="spare"
               type="number"
               step="any"
               defaultValue={query.success ? query.data.spare : 0}
-              className={inputClass}
-            />
+                          />
           </label>
-          <Button type="submit" color="primary">
+          <Button type="submit">
             계산
           </Button>
         </form>
@@ -119,7 +117,7 @@ export default async function StarforcePage({
 
       {rows && rows.items.length === 0 && (
         <SectionContainer>
-          <p className="text-sm text-default-600">
+          <p className="text-sm text-muted-foreground">
             {rows.maxStar === null
               ? "이 레벨은 규칙 구간 밖이에요."
               : `이 레벨의 최대 성은 ${rows.maxStar}성이라 더 강화할 수 없어요.`}
@@ -138,7 +136,7 @@ export default async function StarforcePage({
         <SectionContainer title={`${query.success ? query.data.star : ""}성부터 ${rows.maxStar}성까지`}>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[640px] text-right text-sm">
-              <thead className="text-default-500">
+              <thead className="text-muted-foreground">
                 <tr>
                   <th className="py-2 text-left">성</th>
                   <th>1회 메소</th>
@@ -153,7 +151,7 @@ export default async function StarforcePage({
               </thead>
               <tbody>
                 {rows.items.map(({ from, row, attempt, expected, recovery }) => (
-                  <tr key={from} className="border-t border-default-100">
+                  <tr key={from} className="border-t border-border">
                     <td className="py-2 text-left">
                       ★{from}→{from + 1}
                     </td>
@@ -170,7 +168,7 @@ export default async function StarforcePage({
               </tbody>
             </table>
           </div>
-          <p className="mt-3 text-xs text-default-500">
+          <p className="mt-3 text-xs text-muted-foreground">
             {RESTORE_STAR}성 복구는 파괴되면 {RESTORE_STAR}성으로 돌아가 그 성까지 다시 올리는 기대 메소(대체 장비 1개 포함),
             확정복구는 터진 성 그대로 복구하는 재료 비용이에요. 23성 이상에서 파괴되면 22성으로 설정되므로 22성까지
             돌아오는 비용을 비교해요. 확정복구는 130·135·140·145·150·160·200·250제만 표가 있어 나머지는 &quot;-&quot;예요. 비용식과 확정복구 표는 비공식 출처(원본 mesulive)이고, 복구 이벤트

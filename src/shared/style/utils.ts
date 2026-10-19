@@ -1,24 +1,7 @@
-import { type SlotsToClasses } from "@heroui/react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
-import { entries } from "~/shared/object";
-
 export const cx = (...inputs: ClassValue[]) => twMerge(clsx(inputs));
 
-export const mergeClassNames = <T extends string>(
-  ...inputs: (SlotsToClasses<T> | undefined)[]
-): SlotsToClasses<T> =>
-  inputs
-    .filter((v): v is NonNullable<typeof v> => v != null)
-    .reduce(
-      (acc, obj) =>
-        entries(obj).reduce(
-          (objAcc, [key, value]) => ({
-            ...objAcc,
-            [key]: cx(objAcc[key], value),
-          }),
-          acc,
-        ),
-      {} as SlotsToClasses<T>,
-    );
+/** shadcn/ui 컴포넌트가 가져다 쓰는 이름. */
+export const cn = cx;

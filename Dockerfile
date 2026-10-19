@@ -8,7 +8,6 @@ RUN corepack enable && corepack prepare pnpm@9.15.1 --activate
 FROM base AS deps
 WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
-COPY patches/ ./patches/
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
     pnpm install --frozen-lockfile
 
