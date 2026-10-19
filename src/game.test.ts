@@ -24,6 +24,7 @@ const dataFor = () => data;
 
 const item = (key: string, star: number | null = null, price = PRICE): GameItem => ({
   key,
+  equipSlot: key,
   slot: key,
   name: `${key} 이름`,
   setId: null,

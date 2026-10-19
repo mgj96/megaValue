@@ -31,10 +31,11 @@ import {
   type GameState,
   type RecoveryChoice,
 } from "~/game";
+import { setById } from "~/items";
 import { cn } from "~/shared/style";
 
 import { fetchGameData } from "./api";
-import { StartScreen } from "./StartScreen";
+import { CharacterPortrait, StartScreen } from "./StartScreen";
 
 const STORAGE_KEY = "starforce-game-v3";
 
@@ -164,10 +165,31 @@ export const GameScreen = () => {
       <SectionContainer title="장비창">
         <EquipmentWindow
           selected={item.key}
-          onSelect={(key) => update(select(state, key))}
+          onSelect={(key) => {
+            // 고른 칸을 한 번 더 누르면 그 자리에서 강화한다.
+            if (key === item.key && owned && !pending && !maxed && state.meso >= cost) {
+              tryEnhance(state, data, guard);
+            } else {
+              update(select(state, key));
+            }
+          }}
+          center={
+            <>
+              {state.character ? (
+                <CharacterPortrait character={state.character} />
+              ) : (
+                <p className="text-sm font-bold">{setById(state.items[0]?.setId ?? "")?.name ?? "내 장비"}</p>
+              )}
+              <p className="mt-2 text-sm font-bold">
+                <StarText>{`스펙 ★${totalStars(state)}`}</StarText>
+              </p>
+              <p className="text-[11px] text-muted-foreground">장비 환산 {formatMeso(assets - state.meso)}</p>
+            </>
+          }
           tiles={state.items.map((entry) => ({
             key: entry.key,
-            label: entry.slot,
+            equipSlot: entry.equipSlot,
+            label: `${entry.slot} ${entry.name}`,
             badge: entry.star !== null ? `★${entry.star}` : undefined,
             dim: entry.star === null,
             icon: (
@@ -180,6 +202,7 @@ export const GameScreen = () => {
             ),
           }))}
         />
+        <p className="mt-2 text-xs text-muted-foreground">칸을 누르면 그 장비를 고르고, 고른 칸을 한 번 더 누르면 바로 강화해요.</p>
       </SectionContainer>
 
       <SectionContainer

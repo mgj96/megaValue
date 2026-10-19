@@ -21,12 +21,17 @@ export const fetchGameData = async (level: number, price: number): Promise<GameD
   return (await response.json()) as GameData;
 };
 
-export const fetchMyItems = async (characterName: string, apiKey: string): Promise<MyItem[]> => {
+export type MyCharacter = { name: string; image: string } | null;
+
+export const fetchMyItems = async (
+  characterName: string,
+  apiKey: string,
+): Promise<{ items: MyItem[]; character: MyCharacter }> => {
   const response = await fetch("/api/game", {
     method: "POST",
     headers: { "content-type": "application/json", "x-nxopen-api-key": apiKey.trim() },
     body: JSON.stringify({ characterName: characterName.trim() }),
   });
   if (!response.ok) throw new Error(await errorOf(response, "장비를 불러오지 못했어요."));
-  return ((await response.json()) as { items: MyItem[] }).items;
+  return (await response.json()) as { items: MyItem[]; character: MyCharacter };
 };

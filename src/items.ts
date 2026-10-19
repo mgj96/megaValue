@@ -73,3 +73,62 @@ export const ITEM_PRICES: Record<string, Partial<Record<SlotId, number>>> = {
 };
 
 export const priceOf = (setId: string, slot: SlotId) => ITEM_PRICES[setId]?.[slot] ?? DEFAULT_PRICE;
+
+/**
+ * 게임 장비창 배치. [열, 행]이고 7열 6행 격자에서 3~5열 1~4행은 캐릭터 자리다.
+ * 넥슨 API의 item_equipment_slot 이름을 키로 쓴다. 보내 주신 장비창 화면을 보고 맞춘 값이라
+ * 실제 게임과 칸이 다르면 여기만 고치면 된다. 표에 없는 부위는 빈 칸에 차례로 들어간다.
+ */
+export const SLOT_POSITIONS: Record<string, [number, number]> = {
+  반지4: [1, 1],
+  반지3: [1, 2],
+  반지2: [1, 3],
+  반지1: [1, 4],
+  벨트: [1, 5],
+  "포켓 아이템": [1, 6],
+  얼굴장식: [2, 1],
+  눈장식: [2, 2],
+  귀고리: [2, 3],
+  펜던트: [2, 4],
+  펜던트2: [2, 5],
+  엠블렘: [3, 5],
+  무기: [4, 5],
+  보조무기: [5, 5],
+  모자: [6, 1],
+  상의: [6, 2],
+  하의: [6, 3],
+  어깨장식: [6, 4],
+  "기계 심장": [6, 5],
+  망토: [7, 1],
+  신발: [7, 2],
+  장갑: [7, 3],
+  뱃지: [7, 4],
+  훈장: [7, 5],
+};
+
+/** 세트 부위를 장비창 칸 이름으로. 한벌옷은 상의 칸에 둔다. */
+export const SLOT_TO_EQUIPMENT_SLOT: Record<SlotId, string> = {
+  hat: "모자",
+  outfit: "상의",
+  gloves: "장갑",
+  shoes: "신발",
+  cape: "망토",
+  shoulder: "어깨장식",
+  weapon: "무기",
+  ring: "반지1",
+  pendant: "펜던트",
+  belt: "벨트",
+  earring: "귀고리",
+  eye: "눈장식",
+};
+
+/**
+ * 세트 부위별 아이콘 파일. public/items/<세트 id>/<부위 id>.png 처럼 넣고 여기에 적으면 그 그림을 쓴다.
+ * 비어 있는 부위는 자체 SVG 아이콘으로 대신 보여 준다.
+ * TODO: 나무위키 등에서 받은 작은 png/svg 를 넣는다(이 작업 환경은 외부 사이트에 접속하지 못한다).
+ */
+export const ITEM_IMAGES: Partial<Record<string, string>> = {
+  // "eternal/hat": "/items/eternal/hat.png",
+};
+
+export const imageOf = (setId: string, slot: string) => ITEM_IMAGES[`${setId}/${slot}`];

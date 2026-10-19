@@ -10,10 +10,10 @@ import { Input } from "~/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { formatMeso } from "~/format";
 import { dataKeyOf, newGame, type GameData, type GameItem, type GameState } from "~/game";
-import { DEFAULT_PRICE, ITEM_SETS, SLOT_NAMES, priceOf, setById } from "~/items";
+import { DEFAULT_PRICE, ITEM_SETS, SLOT_NAMES, SLOT_TO_EQUIPMENT_SLOT, priceOf, setById } from "~/items";
 import { cn } from "~/shared/style";
 
-import { fetchGameData, fetchMyItems, type MyItem } from "./api";
+import { fetchGameData, fetchMyItems, type MyCharacter, type MyItem } from "./api";
 
 const START_CHOICES = [1e10, 5e10, 2e11];
 
@@ -36,12 +36,14 @@ export const StartScreen = ({
   const [characterName, setCharacterName] = useState("");
   const [apiKey, setApiKey] = useState("");
   const [items, setItems] = useState<MyItem[] | null>(null);
+  const [character, setCharacter] = useState<MyCharacter>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const set = setById(setId)!;
   const setItemsOf = set.slots.map<GameItem>((id) => ({
     key: id,
+    equipSlot: SLOT_TO_EQUIPMENT_SLOT[id],
     slot: SLOT_NAMES[id],
     name: `${set.name} ${SLOT_NAMES[id]}`,
     setId: set.id,
@@ -75,6 +77,7 @@ export const StartScreen = ({
       if (!items?.length) return;
       const mine = items.map<GameItem>((item, index) => ({
         key: `${index}-${item.slot}`,
+        equipSlot: item.slot,
         slot: item.slot,
         name: item.name,
         setId: null,
@@ -87,7 +90,7 @@ export const StartScreen = ({
       }));
       const dataMap = await loadData(mine);
       const worth = mine.reduce((sum, item) => sum + dataMap[dataKeyOf(item)].values[item.star ?? 0], 0);
-      onStart(newGame({ mode: "mine", meso, items: mine, startAssets: meso + worth }), dataMap);
+      onStart(newGame({ mode: "mine", meso, items: mine, startAssets: meso + worth, character }), dataMap);
     });
 
   const loadItems = () =>
@@ -95,7 +98,9 @@ export const StartScreen = ({
       if (/[^\x20-\x7E]/.test(apiKey)) {
         throw new Error("넥슨 오픈 API 키에는 영문과 숫자만 들어가요. 한/영 전환 상태를 확인해 주세요.");
       }
-      setItems(await fetchMyItems(characterName, apiKey));
+      const result = await fetchMyItems(characterName, apiKey);
+      setItems(result.items);
+      setCharacter(result.character);
     });
 
   const mesoButtons = (start: (meso: number) => void) => (
@@ -147,13 +152,22 @@ export const StartScreen = ({
               <p className="mb-2 text-sm font-medium">{set.name} 장비</p>
               <EquipmentWindow
                 selected={null}
-                onSelect={() => {}}
+                center={
+                  <>
+                    <p className="text-sm font-bold">{set.name}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">부위 {set.slots.length}개</p>
+                  </>
+                }
                 tiles={setItemsOf.map((entry) => ({
                   key: entry.key,
+                  equipSlot: entry.equipSlot,
                   label: `${entry.slot} ${formatMeso(entry.price)}`,
                   icon: <ItemVisual setId={set.id} slot={entry.slotId} label={entry.name} />,
                 }))}
               />
+              <p className="mt-2 text-xs text-muted-foreground">
+                장비 가격은 칸에 마우스를 올리면 보여요. 지금은 모두 기본값 {formatMeso(DEFAULT_PRICE)}이에요.
+              </p>
             </div>
 
             <div>
@@ -199,10 +213,11 @@ export const StartScreen = ({
                       <p className="mb-2 text-sm font-medium">불러온 장비 {items.length}개</p>
                       <EquipmentWindow
                         selected={null}
-                        onSelect={() => {}}
+                        center={<CharacterPortrait character={character} />}
                         tiles={items.map((item, index) => ({
                           key: `${index}-${item.slot}`,
-                          label: item.slot,
+                          equipSlot: item.slot,
+                          label: `${item.slot} ${item.name}`,
                           badge: `★${item.star}`,
                           icon: <ItemVisual icon={item.icon} slot="weapon" label={item.name} />,
                         }))}
@@ -224,3 +239,20 @@ export const StartScreen = ({
     </div>
   );
 };
+
+export const CharacterPortrait = ({ character }: { character: MyCharacter }) =>
+  character ? (
+    <>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={character.image}
+        alt={character.name}
+        referrerPolicy="no-referrer"
+        className="max-h-28 object-contain"
+        style={{ imageRendering: "pixelated" }}
+      />
+      <p className="mt-1 truncate text-xs font-semibold">{character.name}</p>
+    </>
+  ) : (
+    <p className="text-xs text-muted-foreground">캐릭터</p>
+  );

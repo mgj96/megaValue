@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { buildGameData } from "~/gameData";
 import { DEFAULT_PRICE } from "~/items";
-import { getEquipment } from "~/nexon";
+import { getCharacterBasic, getEquipment } from "~/nexon";
 import { loadStarforceRules } from "~/rules";
 import { isAdminTestName, sampleEquipment } from "~/testCase";
 
@@ -56,7 +56,12 @@ export async function POST(request: Request) {
       ];
     });
 
-    return NextResponse.json({ characterClass: equipment.characterClass, items });
+    // 캐릭터 그림은 장비창 가운데에 쓴다. 못 받아도 게임은 할 수 있으니 실패는 무시한다.
+    const character = isAdminTest
+      ? null
+      : await getCharacterBasic(apiKey!, equipment.ocid).catch(() => null);
+
+    return NextResponse.json({ characterClass: equipment.characterClass, character, items });
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "조회에 실패했어요." },

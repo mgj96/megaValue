@@ -24,6 +24,7 @@ const item = (
 });
 
 const equipmentOf = (...items: Equipment["items"]): Equipment => ({
+  ocid: "",
   date: "2026-10-18T00:00:00+09:00",
   characterClass: "아델",
   presetNo: 1,

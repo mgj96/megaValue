@@ -67,6 +67,7 @@ export const getEquipment = async (
   );
 
   return {
+    ocid,
     date: raw.date,
     characterClass: raw.character_class,
     presetNo: raw.preset_no,
@@ -97,4 +98,14 @@ export const getEquipment = async (
       },
     })),
   };
+};
+
+/** /maplestory/v1/character/basic 중 화면에 쓰는 필드. 실제 응답과 대조하지 못했다. */
+export const getCharacterBasic = async (apiKey: string, ocid: string) => {
+  const raw = await get<{ character_name: string; character_image: string }>(
+    apiKey,
+    "/maplestory/v1/character/basic",
+    { ocid },
+  );
+  return { name: raw.character_name, image: raw.character_image };
 };

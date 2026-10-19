@@ -26,6 +26,8 @@ export type GameMode = "mine" | "scratch";
 
 export type GameItem = {
   key: string;
+  /** 장비창 칸 이름(SLOT_POSITIONS 의 키). */
+  equipSlot: string;
   /** 화면에 보이는 부위 이름(무기, 어깨장식 등). */
   slot: string;
   name: string;
@@ -44,6 +46,8 @@ export type GameItem = {
 
 export type GameState = {
   mode: GameMode;
+  /** 내 장비 모드에서 넥슨이 준 캐릭터 이름과 그림. 장비창 가운데에 보여 준다. */
+  character: { name: string; image: string } | null;
   /** 시작 시점 자산(메소 + 장비 원가 가치). 손익 기준이다. */
   startAssets: number;
   meso: number;
@@ -66,13 +70,16 @@ export const newGame = ({
   meso,
   items,
   startAssets = meso,
+  character = null,
 }: {
   mode: GameMode;
   meso: number;
   items: GameItem[];
   startAssets?: number;
+  character?: GameState["character"];
 }): GameState => ({
   mode,
+  character,
   startAssets,
   meso,
   items,

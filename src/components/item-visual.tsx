@@ -1,5 +1,5 @@
 import { ItemIcon } from "~/components/item-icon";
-import { setById, type SlotId } from "~/items";
+import { imageOf, setById, type SlotId } from "~/items";
 import { cn } from "~/shared/style";
 
 /** 넥슨이 준 아이콘이 있으면 그것을, 없으면 세트 색의 자체 아이콘을 보여 준다. */
@@ -16,11 +16,13 @@ export const ItemVisual = ({
   label?: string;
   className?: string;
 }) => {
-  if (icon) {
+  const bundled = setId && slot ? imageOf(setId, slot) : undefined;
+  const src = icon || bundled;
+  if (src) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
-        src={icon}
+        src={src}
         alt={label ?? ""}
         loading="lazy"
         referrerPolicy="no-referrer"

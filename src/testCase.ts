@@ -4,6 +4,7 @@ const none = { grade: null, options: [null, null, null] };
 
 /** 관리자 검수용 표본 장비. 일반 구간, 파괴 방지 구간, 최대 성, 레벨 정보 없음을 한 번에 본다. */
 export const sampleEquipment: Equipment = {
+  ocid: "",
   date: null,
   characterClass: "검수용",
   presetNo: 1,
