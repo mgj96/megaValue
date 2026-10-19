@@ -44,7 +44,7 @@ export const getCosts = (equipLevel: number): number[] => {
 const RESTORE_STAR = 12;
 
 /** 파괴 방지: 기본 비용에 기본 비용의 200%를 더 낸다(총 3배). 파괴 확률은 유지 확률로 넘어간다. */
-const GUARD_EXTRA_COST_RATIO = 2;
+export const GUARD_EXTRA_COST_RATIO = 2;
 
 export type StepCostParams = {
   equipLevel: number;

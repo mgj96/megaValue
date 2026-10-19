@@ -16,6 +16,7 @@
 - `src/starforce.ts` 스타포스 기대 비용(닫힌 식). `getCosts`는 포크에서 가져온 **비공식** 비용식.
 - `src/nexon.ts` 넥슨 오픈 API(OCID → 장비).
 - `src/diagnose.ts` 장비별 진단, 대화 문장, Gemini용 진단 프롬프트(필요한 규칙 행만 발췌).
+- `src/app/starforce/` 스타포스 테스트 페이지(`/starforce`)와 브라우저 저장 게임(`/starforce/game`, 로직은 `src/game.ts`). 게임 판매가는 원가 기반 가정값이고 계정·공유는 아직 없다.
 - `src/app/api/diagnose/route.ts` POST. `src/app/_components/ChatScreen.tsx` 화면.
 - 화면 틀·배포(`MainLayout`, `Footer`, `shared/ui`, Dockerfile, compose, `manage.sh`, 워크플로우)는 원본을 유지하되 Prisma/Postgres는 제거함.
 

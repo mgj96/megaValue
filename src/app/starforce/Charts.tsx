@@ -1,4 +1,4 @@
-import { formatMeso, formatPct } from "~/diagnose";
+import { formatMeso, formatPct } from "~/format";
 import { SectionContainer } from "~/shared/ui";
 import type { AttemptEvaluation, RecoveryComparison } from "~/starforce";
 

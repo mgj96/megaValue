@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { z } from "zod";
 
-import { formatMeso, formatPct } from "~/diagnose";
+import { formatMeso, formatPct } from "~/format";
 import { loadStarforceRules } from "~/rules";
 import { Button, PageTitle, SectionContainer } from "~/shared/ui";
 import { compareRecovery, evaluateAttempt, expectedCostOfStep, getCosts } from "~/starforce";
@@ -77,6 +77,9 @@ export default async function StarforcePage({
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-4">
       <PageTitle>스타포스 테스트</PageTitle>
+      <a href="/starforce/game" className="text-sm text-primary underline underline-offset-2">
+        스타포스 키우기 게임으로 해보기 →
+      </a>
 
       <SectionContainer>
         <form className="flex flex-wrap items-end gap-3">
