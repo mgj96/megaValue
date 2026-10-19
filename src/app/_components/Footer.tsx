@@ -62,10 +62,12 @@ export const Footer = () => {
               <br />
               Contact:{" "}
               <a
-                href="mailto:me@kurateh.com"
+                href="https://github.com/mgj96"
+                target="_blank"
+                rel="noreferrer"
                 className="text-primary underline underline-offset-2"
               >
-                me@kurateh.com
+                mgj96@github.com
               </a>
             </p>
             <Button as={NextLink} href="/license" color="primary" variant="flat">
