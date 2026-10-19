@@ -15,7 +15,9 @@ export type SlotId =
   | "pendant"
   | "belt"
   | "earring"
-  | "eye";
+  | "eye"
+  | "face"
+  | "pocket";
 
 export const SLOT_NAMES: Record<SlotId, string> = {
   hat: "모자",
@@ -30,6 +32,8 @@ export const SLOT_NAMES: Record<SlotId, string> = {
   belt: "벨트",
   earring: "귀고리",
   eye: "눈장식",
+  face: "얼굴장식",
+  pocket: "포켓 아이템",
 };
 
 const ARMOR_SLOTS: SlotId[] = ["weapon", "hat", "outfit", "gloves", "shoes", "cape", "shoulder"];
@@ -48,7 +52,7 @@ export type ItemSet = {
 export const ITEM_SETS: ItemSet[] = [
   { id: "pappnir", name: "파프니르", level: 150, color: "#2f9e6b", slots: ARMOR_SLOTS },
   { id: "absolabs", name: "앱솔랩스", level: 160, color: "#d64545", slots: ARMOR_SLOTS },
-  { id: "pitch", name: "칠흑", level: 160, color: "#3b3b52", slots: ACCESSORY_SLOTS },
+  { id: "pitch", name: "칠흑", level: 160, color: "#3b3b52", slots: ["face", "eye", "pendant", "belt", "pocket"] },
   { id: "dawn", name: "여명", level: 160, color: "#e0a030", slots: ACCESSORY_SLOTS },
   { id: "arcane", name: "아케인셰이드", level: 200, color: "#7a4fd1", slots: ARMOR_SLOTS },
   { id: "eternal", name: "에테르넬", level: 250, color: "#2a8fd6", slots: ARMOR_SLOTS },
@@ -120,15 +124,21 @@ export const SLOT_TO_EQUIPMENT_SLOT: Record<SlotId, string> = {
   belt: "벨트",
   earring: "귀고리",
   eye: "눈장식",
+  face: "얼굴장식",
+  pocket: "포켓 아이템",
 };
 
 /**
  * 세트 부위별 아이콘 파일. public/items/<세트 id>/<부위 id>.png 처럼 넣고 여기에 적으면 그 그림을 쓴다.
- * 비어 있는 부위는 자체 SVG 아이콘으로 대신 보여 준다.
- * TODO: 나무위키 등에서 받은 작은 png/svg 를 넣는다(이 작업 환경은 외부 사이트에 접속하지 못한다).
+ * 비어 있는 부위는 부위 이름만 적은 빈 칸으로 보여 준다.
+ * 칠흑 그림은 사용자가 보내 준 파일이다. 출처 URL은 TODO. 나머지 세트 그림도 받는 대로 넣는다.
  */
 export const ITEM_IMAGES: Partial<Record<string, string>> = {
-  // "eternal/hat": "/items/eternal/hat.png",
+  "pitch/face": "/items/pitch/face.png",
+  "pitch/eye": "/items/pitch/eye.webp",
+  "pitch/pendant": "/items/pitch/pendant.png",
+  "pitch/belt": "/items/pitch/belt.png",
+  "pitch/pocket": "/items/pitch/pocket.webp",
 };
 
 export const imageOf = (setId: string, slot: string) => ITEM_IMAGES[`${setId}/${slot}`];

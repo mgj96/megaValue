@@ -1,8 +1,7 @@
-import { ItemIcon } from "~/components/item-icon";
-import { imageOf, setById, type SlotId } from "~/items";
+import { SLOT_NAMES, imageOf, type SlotId } from "~/items";
 import { cn } from "~/shared/style";
 
-/** 넥슨이 준 아이콘이 있으면 그것을, 없으면 세트 색의 자체 아이콘을 보여 준다. */
+/** 넥슨이 준 아이콘이 있으면 그것을, 없으면 부위 이름만 적은 빈 칸을 보여 준다. */
 export const ItemVisual = ({
   icon,
   setId,
@@ -31,13 +30,9 @@ export const ItemVisual = ({
       />
     );
   }
-  const set = setId ? setById(setId) : undefined;
   return (
-    <ItemIcon
-      slot={(slot as SlotId | null) ?? "weapon"}
-      color={set?.color ?? "#71717a"}
-      label={label}
-      className={cn("size-full", className)}
-    />
+    <div className={cn("flex size-full items-center justify-center bg-muted p-1 text-center text-[10px] leading-tight text-muted-foreground", className)}>
+      {label ?? SLOT_NAMES[slot as SlotId] ?? ""}
+    </div>
   );
 };
