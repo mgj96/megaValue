@@ -32,6 +32,14 @@ export const ChatScreen = () => {
     event.preventDefault();
     if (loading || !characterName.trim()) return;
 
+    if (/[^\x20-\x7E]/.test(apiKey)) {
+      push({
+        role: "assistant",
+        text: "넥슨 오픈 API 키에는 영문·숫자만 들어가요. 한/영 전환 상태나 붙여 넣은 내용을 확인해 주세요.",
+      });
+      return;
+    }
+
     push({ role: "user", text: `${characterName.trim()} 장비 진단해줘` });
     setLoading(true);
     setPrompt(null);

@@ -21,7 +21,7 @@ export async function POST(request: Request) {
   }
 
   // 관리자 검수용: 환경변수에 둔 명령어를 캐릭터 이름에 넣으면 넥슨 조회 없이 표본 장비로 진단한다.
-  const adminCommand = process.env.ADMIN_TEST_COMMAND;
+  const adminCommand = process.env.ADMIN_TEST_COMMAND?.trim();
   const isAdminTest = !!adminCommand && body.data.characterName === adminCommand;
 
   const apiKey = request.headers.get("x-nxopen-api-key")?.trim();

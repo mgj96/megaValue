@@ -26,6 +26,13 @@ describe("POST /api/diagnose 관리자 검수 명령", () => {
     expect(data.prompt).toContain("17성→18성");
   });
 
+  it("환경변수 값 앞뒤 공백은 무시한다", async () => {
+    process.env.ADMIN_TEST_COMMAND = " #검수-test\n";
+    const response = await call("#검수-test");
+
+    expect(response.status).toBe(200);
+  });
+
   it("명령어가 설정돼 있지 않으면 일반 요청처럼 키를 요구한다", async () => {
     const response = await call("#검수-test");
 
