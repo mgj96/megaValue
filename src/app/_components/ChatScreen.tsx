@@ -30,7 +30,7 @@ export const ChatScreen = () => {
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    if (loading || !characterName.trim() || !apiKey.trim()) return;
+    if (loading || !characterName.trim()) return;
 
     push({ role: "user", text: `${characterName.trim()} 장비 진단해줘` });
     setLoading(true);
