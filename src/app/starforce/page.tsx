@@ -4,7 +4,9 @@ import { z } from "zod";
 import { formatMeso, formatPct } from "~/diagnose";
 import { loadStarforceRules } from "~/rules";
 import { Button, PageTitle, SectionContainer } from "~/shared/ui";
-import { compareRecovery, expectedCostOfStep, getCosts } from "~/starforce";
+import { compareRecovery, evaluateAttempt, expectedCostOfStep, getCosts } from "~/starforce";
+
+import { ExampleCard, RecoveryBars } from "./Charts";
 
 export const metadata: Metadata = { title: "스타포스 테스트 | 메이플 장비 진단" };
 
@@ -35,7 +37,7 @@ export default async function StarforcePage({
     const { level, star, spare } = query.data;
     const spareCost = spare * HUNDRED_MILLION;
     const maxStar = rules.maxStarOf(level);
-    if (maxStar === null || star >= maxStar) return { maxStar, items: [] };
+    if (maxStar === null || star >= maxStar) return { maxStar, example: null, items: [] };
 
     const last = Math.min(maxStar, 30);
     const expected = Array.from({ length: last }, (_, from) =>
@@ -43,8 +45,17 @@ export default async function StarforcePage({
     );
     const costs = getCosts(level);
 
+    const example = evaluateAttempt({
+      equipLevel: level,
+      table: rules.table,
+      star,
+      spareCost,
+      restoreOf: rules.restoreOf,
+    });
+
     return {
       maxStar,
+      example,
       items: Array.from({ length: last - star }, (_, i) => {
         const from = star + i;
         const row = rules.table[from];
@@ -113,6 +124,13 @@ export default async function StarforcePage({
         </SectionContainer>
       )}
 
+      {rows?.example && query.success && (
+        <ExampleCard
+          title={`예제 — ${query.data.level}제 ★${query.data.star}→${query.data.star + 1} 1회 시도`}
+          evaluation={rows.example}
+        />
+      )}
+
       {rows && rows.items.length > 0 && (
         <SectionContainer title={`${query.success ? query.data.star : ""}성부터 ${rows.maxStar}성까지`}>
           <div className="overflow-x-auto">
@@ -157,6 +175,13 @@ export default async function StarforcePage({
           </p>
         </SectionContainer>
       )}
+
+      {rows && (() => {
+        const compared = rows.items.flatMap(({ from, recovery }) =>
+          recovery ? [{ star: from, recovery }] : [],
+        );
+        return compared.length > 0 ? <RecoveryBars rows={compared} /> : null;
+      })()}
     </div>
   );
 }

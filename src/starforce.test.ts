@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 
 import { loadStarforceRules, loadStarforceTable } from "./rules";
-import { compareRecovery, expectedCostOfStep, getCosts, type StarRow } from "./starforce";
+import {
+  compareRecovery,
+  evaluateAttempt,
+  expectedCostOfStep,
+  getCosts,
+  type StarRow,
+} from "./starforce";
 
 const flat = (row: StarRow): StarRow[] => Array.from({ length: 30 }, () => row);
 
@@ -100,5 +106,42 @@ describe("compareRecovery", () => {
   it("23성 이상은 22성까지 돌아오는 비용을 비교한다", () => {
     expect(compare(27, 0)).toEqual(compare(22, 0));
     expect(compare(29, 0)?.cheaper).toBe("확정복구");
+  });
+});
+
+describe("evaluateAttempt", () => {
+  const rules = loadStarforceRules();
+  const evaluate = (star: number, spareCost = 0) =>
+    evaluateAttempt({
+      equipLevel: 200,
+      table: rules.table,
+      star,
+      spareCost,
+      restoreOf: rules.restoreOf,
+    });
+
+  it("복구가 12성 복구뿐이면 기대 손익이 0이다(원가 기반이므로)", () => {
+    expect(evaluate(17).expectedNet).toBeCloseTo(0, 0);
+  });
+
+  it("확정복구가 싸면 기대 손익은 파괴 확률 × 절감액이다", () => {
+    const e = evaluate(22);
+    const c = compareRecovery({
+      equipLevel: 200,
+      table: rules.table,
+      star: 22,
+      spareCost: 0,
+      restoreOf: rules.restoreOf,
+    })!;
+
+    expect(e.recoveryBy).toBe("확정복구");
+    expect(e.expectedNet).toBeCloseTo(rules.table[22].destroy * (c.noRestoreCost - c.restoreCost), 0);
+  });
+
+  it("확률 합은 1이고 파괴 없는 구간은 복구 비용이 0", () => {
+    const e = evaluate(5);
+
+    expect(e.outcomes.reduce((a, o) => a + o.prob, 0)).toBeCloseTo(1);
+    expect(e.recoveryCost).toBe(0);
   });
 });
