@@ -68,6 +68,9 @@
   body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* 한글을 글자 중간이 아니라 어절 단위로 줄바꿈한다. 긴 영문·숫자는 넘치지 않게 꺾는다. */
+    word-break: keep-all;
+    overflow-wrap: break-word;
   }
 }
 

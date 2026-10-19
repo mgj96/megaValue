@@ -104,7 +104,7 @@ export const ChatScreen = () => {
               <ul className="flex flex-col gap-3">
                 {recommendations.map((r) => (
                   <li key={`${r.slot}-${r.name}`} className="rounded-lg border p-3">
-                    <div className="flex items-baseline justify-between gap-2">
+                    <div className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-2">
                       <p className="text-sm font-semibold">
                         {r.rank !== null && (
                           <span className="mr-2 rounded-md bg-primary px-1.5 py-0.5 text-xs text-primary-foreground">
@@ -113,7 +113,7 @@ export const ChatScreen = () => {
                         )}
                         {r.slot} · {r.headline}
                       </p>
-                      <p className="truncate text-xs text-muted-foreground">{r.name}</p>
+                      <p className="text-xs text-muted-foreground sm:truncate">{r.name}</p>
                     </div>
                     <ul className="mt-1.5 list-disc pl-5 text-xs leading-relaxed text-foreground/80">
                       {r.reasons.map((reason) => (
