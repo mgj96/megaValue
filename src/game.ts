@@ -22,8 +22,16 @@ export type GameData = {
   restore: Record<number, { spareCount: number; meso: number } | null>;
 };
 
+export type GameMode = "mine" | "scratch";
+
 export type GameState = {
-  startMeso: number;
+  mode: GameMode;
+  /** 장비 착용 레벨. GameData 를 이 레벨로 불러온다. */
+  level: number;
+  /** "내 장비" 모드에서 고른 장비 이름. */
+  itemName: string | null;
+  /** 시작 시점 자산(메소 + 장비 원가 가치). 손익 기준이다. */
+  startAssets: number;
   meso: number;
   /** 보유 장비의 성. 장비가 없으면 null. */
   star: number | null;
@@ -37,14 +45,31 @@ export type GameState = {
 
 export type RecoveryChoice = "restore" | "twelve" | "giveup";
 
-export const newGame = (startMeso: number): GameState => ({
-  startMeso,
-  meso: startMeso,
-  star: null,
+export const newGame = ({
+  mode,
+  level,
+  meso,
+  star = null,
+  itemName = null,
+  startAssets = meso,
+}: {
+  mode: GameMode;
+  level: number;
+  meso: number;
+  star?: number | null;
+  itemName?: string | null;
+  startAssets?: number;
+}): GameState => ({
+  mode,
+  level,
+  itemName,
+  startAssets,
+  meso,
+  star,
   destroyedAt: null,
   attempts: 0,
   destroys: 0,
-  maxStarReached: 0,
+  maxStarReached: star ?? 0,
   log: [],
 });
 

@@ -4,7 +4,7 @@ import { z } from "zod";
 import { buildDiagnosisPrompt, buildReply, diagnoseItems, recommendSlots } from "~/diagnose";
 import { getEquipment } from "~/nexon";
 import { loadStarforceRules } from "~/rules";
-import { sampleEquipment } from "~/testCase";
+import { isAdminTestName, sampleEquipment } from "~/testCase";
 
 export const runtime = "nodejs";
 
@@ -20,9 +20,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "캐릭터 이름을 입력해 주세요." }, { status: 400 });
   }
 
-  // 관리자 검수용: 환경변수에 둔 명령어를 캐릭터 이름에 넣으면 넥슨 조회 없이 표본 장비로 진단한다.
-  const adminCommand = process.env.ADMIN_TEST_COMMAND?.trim();
-  const isAdminTest = !!adminCommand && body.data.characterName === adminCommand;
+  const isAdminTest = isAdminTestName(body.data.characterName);
 
   const apiKey = request.headers.get("x-nxopen-api-key")?.trim();
   if (!apiKey && !isAdminTest) {

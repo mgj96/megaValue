@@ -11,7 +11,6 @@ import {
   buy,
   enhance,
   isOver,
-  newGame,
   recover,
   restoreCostOf,
   sell,
@@ -26,8 +25,10 @@ import { StarStrip } from "~/components/star-strip";
 import { Button } from "~/components/ui/button";
 import { cn } from "~/shared/style";
 
-const STORAGE_KEY = "starforce-game-v1";
-const START_CHOICES = [3e9, 1e10, 5e10];
+import { fetchGameData } from "./api";
+import { StartScreen } from "./StartScreen";
+
+const STORAGE_KEY = "starforce-game-v2";
 
 type Fx = { id: number; kind: "success" | "maintain" | "destroy" | "other" };
 
@@ -49,15 +50,27 @@ const write = (state: GameState | null) => {
   }
 };
 
-export const GameScreen = ({ data }: { data: GameData }) => {
+export const GameScreen = () => {
   const [state, setState] = useState<GameState | null>(null);
+  const [data, setData] = useState<GameData | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
   const [fx, setFx] = useState<Fx | null>(null);
 
   useEffect(() => {
-    setState(read());
+    const saved = read();
+    setState(saved);
     setReady(true);
+    if (!saved) return;
+    fetchGameData(saved.level)
+      .then(setData)
+      .catch((e: Error) => setLoadError(e.message));
   }, []);
+
+  const begin = (next: GameState, loaded: GameData) => {
+    setData(loaded);
+    update(next);
+  };
 
   const update = (next: GameState | null, kind: Fx["kind"] = "other") => {
     setState(next);
@@ -65,8 +78,8 @@ export const GameScreen = ({ data }: { data: GameData }) => {
     setFx((prev) => ({ id: (prev?.id ?? 0) + 1, kind }));
   };
 
-  const tryEnhance = (current: GameState, guard: boolean) => {
-    const next = enhance(current, data, guard, Math.random);
+  const tryEnhance = (current: GameState, loaded: GameData, guard: boolean) => {
+    const next = enhance(current, loaded, guard, Math.random);
     const kind =
       next.destroyedAt !== null
         ? "destroy"
@@ -78,23 +91,21 @@ export const GameScreen = ({ data }: { data: GameData }) => {
 
   if (!ready) return null;
 
-  if (!state) {
+  if (!state) return <StartScreen onStart={begin} />;
+
+  if (!data) {
     return (
       <div className="mx-auto flex max-w-2xl flex-col gap-4">
         <PageTitle>스타포스 키우기</PageTitle>
-        <SectionContainer title="시작 자금을 고르세요">
-          <p className="mb-4 text-sm text-muted-foreground">
-            {data.level}제 장비를 사서 스타포스를 올리고, 원가 가치에 파는 게임이에요. 시세가 아니라
-            &quot;대체 장비 {formatMeso(data.spareCost)} + 그 성까지 키우는 기대 비용&quot;을 판매가로 쓰는 가정값이라, 운이
-            좋아야 이득이 나요. 진행 상황은 이 브라우저에만 저장돼요.
+        <SectionContainer>
+          <p className="text-sm text-muted-foreground">
+            {loadError ?? "게임 데이터를 불러오는 중이에요…"}
           </p>
-          <div className="flex flex-wrap gap-2">
-            {START_CHOICES.map((meso) => (
-              <Button key={meso} onClick={() => update(newGame(meso))}>
-                {formatMeso(meso)} 메소로 시작
-              </Button>
-            ))}
-          </div>
+          {loadError && (
+            <Button className="mt-3" variant="outline" onClick={() => update(null)}>
+              처음 화면으로
+            </Button>
+          )}
         </SectionContainer>
       </div>
     );
@@ -112,13 +123,16 @@ export const GameScreen = ({ data }: { data: GameData }) => {
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-4">
       <PageTitle>스타포스 키우기</PageTitle>
+      <p className="-mt-2 text-sm text-muted-foreground">
+        {state.mode === "mine" ? `내 장비 · ${state.itemName}` : `처음부터 · ${state.level}제`}
+      </p>
 
       <SectionContainer>
         <dl className="grid grid-cols-3 gap-3 text-center">
           {[
             { label: "메소", value: state.meso, signed: false },
             { label: "총 자산(원가 기준)", value: assets, signed: false },
-            { label: "시작 대비", value: assets - state.startMeso, signed: true },
+            { label: "시작 대비", value: assets - state.startAssets, signed: true },
           ].map(({ label, value, signed }) => (
             <div key={label}>
               <dt className="text-xs text-muted-foreground">{label}</dt>
@@ -182,7 +196,7 @@ export const GameScreen = ({ data }: { data: GameData }) => {
             )}
             <div className="mt-4 flex flex-wrap gap-2">
               {!maxed && (
-                <Button disabled={state.meso < attemptCost} onClick={() => tryEnhance(state, false)}>
+                <Button disabled={state.meso < attemptCost} onClick={() => tryEnhance(state, data, false)}>
                   강화 ({formatMeso(attemptCost)})
                 </Button>
               )}
@@ -190,7 +204,7 @@ export const GameScreen = ({ data }: { data: GameData }) => {
                 <Button
                   variant="secondary"
                   disabled={state.meso < guardCost}
-                  onClick={() => tryEnhance(state, true)}
+                  onClick={() => tryEnhance(state, data, true)}
                 >
                   파괴 방지 강화 ({formatMeso(guardCost)})
                 </Button>

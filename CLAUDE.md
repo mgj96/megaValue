@@ -16,7 +16,7 @@
 - `src/starforce.ts` 스타포스 기대 비용(닫힌 식). `getCosts`는 포크에서 가져온 **비공식** 비용식.
 - `src/nexon.ts` 넥슨 오픈 API(OCID → 장비).
 - `src/diagnose.ts` 장비별 진단, 대화 문장, Gemini용 진단 프롬프트(필요한 규칙 행만 발췌).
-- `src/app/starforce/` 스타포스 테스트 페이지(`/starforce`)와 브라우저 저장 게임(`/starforce/game`, 로직은 `src/game.ts`). 게임 판매가는 원가 기반 가정값이고 계정·공유는 아직 없다.
+- `src/app/starforce/` 스타포스 테스트 페이지(`/starforce`)와 브라우저 저장 게임(`/starforce/game`, 로직은 `src/game.ts`, 레벨별 데이터는 `src/gameData.ts` → `GET /api/game?level=`). 모드 2가지: 처음부터 하기(레벨 선택, ★0에서 시작)와 내 장비로 하기(`POST /api/game`으로 장비를 불러와 현재 성에서 시작, 넥슨 키는 헤더로만). 게임 판매가는 원가 기반 가정값이고 계정·공유는 아직 없다.
 - `src/app/api/diagnose/route.ts` POST. `src/app/_components/ChatScreen.tsx` 화면.
 - UI: shadcn/ui(new-york, zinc, CSS 변수 토큰은 `src/app/globals.css`, 라이트/다크는 `next-themes`). 컴포넌트는 `src/components/ui/`, 조합 컴포넌트는 `src/components/`(`SectionContainer`, `PageTitle`, `ThemeToggle`, `AnimatedMeso`, `StarStrip`). `components.json`이 있어 새 컴포넌트는 `pnpm dlx shadcn@latest add <name>`로 추가한다(클라우드 샌드박스는 shadcn 레지스트리가 막혀 있어 소스를 직접 옮겼다). 색은 `bg-primary` 같은 토큰만 쓰고 hex를 직접 쓰지 않는다. 연출은 `tailwind.config.ts`의 `star-pop`·`shake`·`destroy-flash` 키프레임과 framer-motion, 모션 줄이기 설정은 `globals.css`에서 일괄 처리.
 - 배포(Dockerfile, compose, `manage.sh`, 워크플로우)는 원본을 유지하되 Prisma/Postgres, HeroUI, 스토리북은 제거함.

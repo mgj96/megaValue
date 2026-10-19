@@ -65,3 +65,9 @@ export const sampleEquipment: Equipment = {
     },
   ],
 };
+
+/** 관리자 검수용: 환경변수에 둔 명령어를 캐릭터 이름에 넣으면 넥슨 조회 없이 표본 장비를 쓴다. */
+export const isAdminTestName = (characterName: string) => {
+  const command = process.env.ADMIN_TEST_COMMAND?.trim();
+  return !!command && characterName === command;
+};
