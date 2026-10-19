@@ -4,7 +4,9 @@
 # [중요 경고] 2026-03-19 업데이트로 "스타캐치 삭제, 스타캐치 성공 시 올라가던 성공 확률은 항상 적용"으로 변경됨.
 #   출처: https://m.maplestory.nexon.com/News/Update/799  (강화 개편 항목)
 #   아래 15~29성 표는 2025-03-13 테스트월드 공지 값이며, 2026-03 개편 후에도 동일한지
-#   공식 문서에서 확인하지 못했다. (스타캐치 보정 포함 여부 불명) → 확정 전 게임 내 강화 UI와 대조 필요.
+#   공식 문서에서 확인하지 못했다. → 확정 전 게임 내 강화 UI와 대조 필요.
+# [결정 2026-10-19] 공식 표를 그대로 쓴다. 스타캐치 ×1.05 는 적용하지 않는다.
+#   (원본 kurateh/mesulive 는 개편 후 표에 ×1.05 를 미리 곱해 둔다. ×1.05 라는 숫자는 공식 문구에 없다.)
 
 version: draft-2026-10-18
 
@@ -74,10 +76,6 @@ probabilities_0_to_14:   # source_grade: community
   12: { success: 40, maintain: 60, destroy: 0 }
   13: { success: 35, maintain: 65, destroy: 0 }
   14: { success: 30, maintain: 70, destroy: 0 }
-
-# 스타캐치: 포크는 성공확률 ×1.05 (나머지 확률은 비례 축소)로 모델링. 2026-03-19에 스타캐치가 삭제되고
-# "상승분이 항상 적용"으로 바뀌었으므로, 현행 표시 확률이 base 인지 base×1.05 인지 공식 미확인 → 결정 필요.
-starcatch_success_multiplier: 1.05   # source_grade: community, 현행 적용 여부 미확인
 
 # 강화 1회 기본 메소 비용 — 비공식(포크 mgj96/megaValue 의 getCosts, 원본 kurateh/mesulive, AGPL-3.0).
 # 식은 데이터가 아니라 코드이므로 src/starforce.ts 의 getCosts 한 곳에만 둔다(중복 방지). 여기에는 두지 않음.
