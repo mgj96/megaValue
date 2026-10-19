@@ -1,5 +1,8 @@
+import { type ReactNode } from "react";
+
 import { formatMeso, formatPct } from "~/format";
 import { SectionContainer } from "~/components/section-container";
+import { StarText } from "~/components/star-text";
 import type { AttemptEvaluation, RecoveryComparison } from "~/starforce";
 
 // 색만으로 구분하지 않는다: 모든 막대에 글자 라벨이 붙는다.
@@ -16,7 +19,7 @@ export const ExampleCard = ({
   title,
   evaluation,
 }: {
-  title: string;
+  title: ReactNode;
   evaluation: AttemptEvaluation;
 }) => {
   const { outcomes, expectedNet, recoveryBy, recoveryCost, value, nextValue, attemptCost } =
@@ -78,12 +81,13 @@ export const ExampleCard = ({
         1회 기대 손익 {signed(expectedNet)}
       </p>
       <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-        원가 가치는 대체 장비 값에 0성부터 그 성까지 키우는 기대 비용을 더한 금액이에요(★ 가치{" "}
-        {formatMeso(value)} → {formatMeso(nextValue)}, 1회 시도 {formatMeso(attemptCost)}). 시세는 반영하지
-        않았고, 평균으로 보면 복구를 싸게 하는 만큼만 이득이 나요.{" "}
-        {recoveryCost > 0
-          ? `파괴되면 ${recoveryBy}(${formatMeso(recoveryCost)})로 같은 성까지 되돌려요.`
-          : "이 구간은 파괴가 없어요."}
+        <StarText>
+          {`원가 가치는 대체 장비 값에 0성부터 그 성까지 키우는 기대 비용을 더한 금액이에요(★ 가치 ${formatMeso(value)} → ${formatMeso(nextValue)}, 1회 시도 ${formatMeso(attemptCost)}). 시세는 반영하지 않았고, 평균으로 보면 복구를 싸게 하는 만큼만 이득이 나요. ${
+            recoveryCost > 0
+              ? `파괴되면 ${recoveryBy}(${formatMeso(recoveryCost)})로 같은 성까지 되돌려요.`
+              : "이 구간은 파괴가 없어요."
+          }`}
+        </StarText>
       </p>
     </SectionContainer>
   );
@@ -115,7 +119,7 @@ export const RecoveryBars = ({
         return (
           <div key={star}>
             <p className="mb-1 text-xs text-muted-foreground">
-              ★{star} 파괴 시 {recovery.cheaper}가 유리
+              <StarText>{`★${star} 파괴 시 ${recovery.cheaper}가 유리`}</StarText>
             </p>
             <div className="flex flex-col gap-0.5">
               {bars.map((bar) => (

@@ -4,6 +4,7 @@ import { useRef, useState, type FormEvent } from "react";
 
 import { PageTitle } from "~/components/page-title";
 import { SectionContainer } from "~/components/section-container";
+import { StarText } from "~/components/star-text";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
@@ -111,13 +112,15 @@ export const ChatScreen = () => {
                             {r.rank}
                           </span>
                         )}
-                        {r.slot} · {r.headline}
+                        <StarText>{`${r.slot} · ${r.headline}`}</StarText>
                       </p>
                       <p className="text-xs text-muted-foreground sm:truncate">{r.name}</p>
                     </div>
                     <ul className="mt-1.5 list-disc pl-5 text-xs leading-relaxed text-foreground/80">
                       {r.reasons.map((reason) => (
-                        <li key={reason}>{reason}</li>
+                        <li key={reason}>
+                          <StarText>{reason}</StarText>
+                        </li>
                       ))}
                     </ul>
                   </li>
@@ -161,7 +164,7 @@ export const ChatScreen = () => {
                 : "self-start bg-muted text-foreground/90",
             )}
           >
-            {message.text}
+            <StarText>{message.text}</StarText>
           </div>
         ))}
         {loading && (

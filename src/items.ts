@@ -59,3 +59,17 @@ export const setById = (id: string) => ITEM_SETS.find((set) => set.id === id);
 /** 계산표 같은 곳에서 레벨만 알 때 가장 가까운 세트 이름을 붙인다. 없으면 null. */
 export const setNameOfLevel = (level: number) =>
   ITEM_SETS.find((set) => set.level === level)?.name ?? null;
+
+/** 가격 기본값(메소). 시세를 받기 전까지 모든 장비에 같은 값을 쓴다. 시세 아님. */
+export const DEFAULT_PRICE = 5e8;
+
+/**
+ * 세트별, 부위별 장비 구매가(메소). 비어 있는 칸은 DEFAULT_PRICE 를 쓴다.
+ * TODO: 칠흑과 에테르넬 시세를 받으면 채운다. 예) eternal: { weapon: 120e8, hat: 40e8 }
+ */
+export const ITEM_PRICES: Record<string, Partial<Record<SlotId, number>>> = {
+  pitch: {},
+  eternal: {},
+};
+
+export const priceOf = (setId: string, slot: SlotId) => ITEM_PRICES[setId]?.[slot] ?? DEFAULT_PRICE;

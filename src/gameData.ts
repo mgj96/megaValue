@@ -2,11 +2,8 @@ import type { GameData } from "./game";
 import { loadStarforceRules } from "./rules";
 import { compareRecovery, evaluateAttempt, getCosts } from "./starforce";
 
-/** 게임용 가정값(시세 아님). 장비를 사는 가격이자 대체 장비 1개 가격. */
-export const SPARE_COST = 5e8;
-
-/** 착용 레벨 하나에 대한 게임 데이터. 최대 성 규칙 구간 밖이면 null. */
-export const buildGameData = (level: number): GameData | null => {
+/** 착용 레벨과 구매가(대체 장비 1개 값) 조합에 대한 게임 데이터. 최대 성 규칙 구간 밖이면 null. */
+export const buildGameData = (level: number, spareCost: number): GameData | null => {
   const rules = loadStarforceRules();
   const maxStar = rules.maxStarOf(level);
   if (maxStar === null) return null;
@@ -14,14 +11,14 @@ export const buildGameData = (level: number): GameData | null => {
   const common = {
     equipLevel: level,
     table: rules.table,
-    spareCost: SPARE_COST,
+    spareCost,
     restoreOf: rules.restoreOf,
   };
   const evaluations = Array.from({ length: maxStar }, (_, star) => evaluateAttempt({ ...common, star }));
 
   return {
     level,
-    spareCost: SPARE_COST,
+    spareCost,
     maxStar,
     table: rules.table,
     costs: getCosts(level),

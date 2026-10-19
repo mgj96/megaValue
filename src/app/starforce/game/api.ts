@@ -15,8 +15,8 @@ const errorOf = async (response: Response, fallback: string) => {
   return body?.error ?? fallback;
 };
 
-export const fetchGameData = async (level: number): Promise<GameData> => {
-  const response = await fetch(`/api/game?level=${level}`);
+export const fetchGameData = async (level: number, price: number): Promise<GameData> => {
+  const response = await fetch(`/api/game?level=${level}&price=${price}`);
   if (!response.ok) throw new Error(await errorOf(response, "게임 데이터를 불러오지 못했어요."));
   return (await response.json()) as GameData;
 };

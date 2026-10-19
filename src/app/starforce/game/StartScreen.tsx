@@ -9,31 +9,49 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { formatMeso } from "~/format";
-import { newGame, type GameData, type GameState } from "~/game";
-import { ITEM_SETS, SLOT_NAMES, setById, type SlotId } from "~/items";
+import { dataKeyOf, newGame, type GameData, type GameItem, type GameState } from "~/game";
+import { DEFAULT_PRICE, ITEM_SETS, SLOT_NAMES, priceOf, setById } from "~/items";
 import { cn } from "~/shared/style";
 
 import { fetchGameData, fetchMyItems, type MyItem } from "./api";
 
-const START_CHOICES = [3e9, 1e10, 5e10];
+const START_CHOICES = [1e10, 5e10, 2e11];
+
+type DataMap = Record<string, GameData>;
+
+const loadData = async (items: Pick<GameItem, "level" | "price">[]): Promise<DataMap> => {
+  const unique = new Map(items.map((item) => [dataKeyOf(item), item]));
+  const entries = await Promise.all(
+    [...unique].map(async ([key, item]) => [key, await fetchGameData(item.level, item.price)] as const),
+  );
+  return Object.fromEntries(entries);
+};
 
 export const StartScreen = ({
   onStart,
 }: {
-  onStart: (state: GameState, data: GameData) => void;
+  onStart: (state: GameState, data: DataMap) => void;
 }) => {
   const [setId, setSetId] = useState(ITEM_SETS[ITEM_SETS.length - 1].id);
-  const [slot, setSlot] = useState<SlotId | null>(null);
   const [characterName, setCharacterName] = useState("");
   const [apiKey, setApiKey] = useState("");
   const [items, setItems] = useState<MyItem[] | null>(null);
-  const [pickedKey, setPickedKey] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const set = setById(setId)!;
-  const keyOf = (item: MyItem) => `${item.slot}-${item.name}`;
-  const picked = items?.find((item) => keyOf(item) === pickedKey) ?? null;
+  const setItemsOf = set.slots.map<GameItem>((id) => ({
+    key: id,
+    slot: SLOT_NAMES[id],
+    name: `${set.name} ${SLOT_NAMES[id]}`,
+    setId: set.id,
+    slotId: id,
+    icon: null,
+    level: set.level,
+    price: priceOf(set.id, id),
+    star: null,
+    maxStarReached: 0,
+  }));
 
   const run = async (task: () => Promise<void>) => {
     setBusy(true);
@@ -49,37 +67,27 @@ export const StartScreen = ({
 
   const startScratch = (meso: number) =>
     run(async () => {
-      if (!slot) return;
-      const data = await fetchGameData(set.level);
-      onStart(
-        newGame({
-          mode: "scratch",
-          level: set.level,
-          meso,
-          itemName: `${set.name} ${SLOT_NAMES[slot]}`,
-          setId: set.id,
-          slot,
-        }),
-        data,
-      );
+      onStart(newGame({ mode: "scratch", meso, items: setItemsOf }), await loadData(setItemsOf));
     });
 
   const startMine = (meso: number) =>
     run(async () => {
-      if (!picked) return;
-      const data = await fetchGameData(picked.level);
-      onStart(
-        newGame({
-          mode: "mine",
-          level: picked.level,
-          meso,
-          star: picked.star,
-          itemName: `${picked.slot} ${picked.name}`,
-          icon: picked.icon || null,
-          startAssets: meso + data.values[picked.star],
-        }),
-        data,
-      );
+      if (!items?.length) return;
+      const mine = items.map<GameItem>((item, index) => ({
+        key: `${index}-${item.slot}`,
+        slot: item.slot,
+        name: item.name,
+        setId: null,
+        slotId: null,
+        icon: item.icon || null,
+        level: item.level,
+        price: DEFAULT_PRICE,
+        star: item.star,
+        maxStarReached: item.star,
+      }));
+      const dataMap = await loadData(mine);
+      const worth = mine.reduce((sum, item) => sum + dataMap[dataKeyOf(item)].values[item.star ?? 0], 0);
+      onStart(newGame({ mode: "mine", meso, items: mine, startAssets: meso + worth }), dataMap);
     });
 
   const loadItems = () =>
@@ -87,7 +95,6 @@ export const StartScreen = ({
       if (/[^\x20-\x7E]/.test(apiKey)) {
         throw new Error("넥슨 오픈 API 키에는 영문과 숫자만 들어가요. 한/영 전환 상태를 확인해 주세요.");
       }
-      setPickedKey(null);
       setItems(await fetchMyItems(characterName, apiKey));
     });
 
@@ -112,8 +119,8 @@ export const StartScreen = ({
 
           <TabsContent value="scratch" className="flex flex-col gap-4">
             <p className="text-sm text-muted-foreground">
-              세트와 부위를 고르면 ★0 장비를 사서 처음부터 올려요. 판매가는 원가로 계산한 가정값이고 실제 시세와는
-              달라요.
+              세트를 고르면 그 세트 장비를 부위별로 하나씩 사서 ★0부터 올려요. 장비를 하나씩 키워 캐릭터 스펙을 쌓는
+              게임이고, 판매가는 원가로 계산한 가정값이에요. 가격도 시세가 아니라 기본값이에요.
             </p>
 
             <div>
@@ -123,10 +130,7 @@ export const StartScreen = ({
                   <button
                     key={option.id}
                     type="button"
-                    onClick={() => {
-                      setSetId(option.id);
-                      setSlot(null);
-                    }}
+                    onClick={() => setSetId(option.id)}
                     className={cn(
                       "flex items-center gap-2 rounded-lg border-2 px-2.5 py-1.5 text-sm transition-all active:scale-95",
                       option.id === setId ? "border-primary bg-accent" : "border-transparent bg-muted hover:bg-accent",
@@ -140,24 +144,22 @@ export const StartScreen = ({
             </div>
 
             <div>
-              <p className="mb-2 text-sm font-medium">{set.name} 부위</p>
+              <p className="mb-2 text-sm font-medium">{set.name} 장비</p>
               <EquipmentWindow
-                selected={slot}
-                onSelect={(key) => setSlot(key as SlotId)}
-                tiles={set.slots.map((id) => ({
-                  key: id,
-                  label: SLOT_NAMES[id],
-                  icon: <ItemVisual setId={set.id} slot={id} label={`${set.name} ${SLOT_NAMES[id]}`} />,
+                selected={null}
+                onSelect={() => {}}
+                tiles={setItemsOf.map((entry) => ({
+                  key: entry.key,
+                  label: `${entry.slot} ${formatMeso(entry.price)}`,
+                  icon: <ItemVisual setId={set.id} slot={entry.slotId} label={entry.name} />,
                 }))}
               />
             </div>
 
-            {slot && (
-              <div>
-                <p className="mb-2 text-sm font-medium">시작 자금</p>
-                {mesoButtons(startScratch)}
-              </div>
-            )}
+            <div>
+              <p className="mb-2 text-sm font-medium">시작 자금</p>
+              {mesoButtons(startScratch)}
+            </div>
           </TabsContent>
 
           <TabsContent value="mine" className="flex flex-col gap-4">
@@ -188,31 +190,30 @@ export const StartScreen = ({
             </div>
 
             {items && (
-              <div>
-                <p className="mb-2 text-sm font-medium">올릴 장비를 누르세요</p>
+              <div className="flex flex-col gap-4">
                 {items.length === 0 ? (
                   <p className="text-sm text-muted-foreground">스타포스를 할 수 있는 장비가 없어요.</p>
                 ) : (
-                  <EquipmentWindow
-                    selected={pickedKey}
-                    onSelect={setPickedKey}
-                    tiles={items.map((item) => ({
-                      key: keyOf(item),
-                      label: item.slot,
-                      badge: `★${item.star}`,
-                      disabled: item.star >= item.maxStar,
-                      icon: <ItemVisual icon={item.icon} slot="weapon" label={item.name} />,
-                    }))}
-                  />
+                  <>
+                    <div>
+                      <p className="mb-2 text-sm font-medium">불러온 장비 {items.length}개</p>
+                      <EquipmentWindow
+                        selected={null}
+                        onSelect={() => {}}
+                        tiles={items.map((item, index) => ({
+                          key: `${index}-${item.slot}`,
+                          label: item.slot,
+                          badge: `★${item.star}`,
+                          icon: <ItemVisual icon={item.icon} slot="weapon" label={item.name} />,
+                        }))}
+                      />
+                    </div>
+                    <div>
+                      <p className="mb-2 text-sm font-medium">보유 메소</p>
+                      {mesoButtons(startMine)}
+                    </div>
+                  </>
                 )}
-                {picked && <p className="mt-2 text-xs text-muted-foreground">{picked.name}</p>}
-              </div>
-            )}
-
-            {picked && (
-              <div>
-                <p className="mb-2 text-sm font-medium">보유 메소</p>
-                {mesoButtons(startMine)}
               </div>
             )}
           </TabsContent>

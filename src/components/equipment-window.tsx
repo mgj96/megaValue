@@ -9,6 +9,8 @@ export type EquipmentTile = {
   /** 왼쪽 위에 붙는 작은 표시(예: ★17). */
   badge?: string;
   disabled?: boolean;
+  /** 보유하지 않은 칸은 흐리게 보인다. */
+  dim?: boolean;
 };
 
 /** 게임 장비창처럼 아이콘 칸을 격자로 늘어놓고 하나를 고르게 한다. */
@@ -36,11 +38,13 @@ export const EquipmentWindow = ({
         )}
       >
         {tile.badge && (
-          <span className="absolute left-1 top-1 z-10 rounded bg-primary px-1 text-[10px] font-bold leading-4 text-primary-foreground">
+          <span className="absolute left-1 top-1 z-10 rounded bg-yellow-400 px-1 text-[10px] font-bold leading-4 text-zinc-900">
             {tile.badge}
           </span>
         )}
-        <span className="block aspect-square w-full overflow-hidden rounded-md">{tile.icon}</span>
+        <span className={cn("block aspect-square w-full overflow-hidden rounded-md", tile.dim && "opacity-40 grayscale")}>
+          {tile.icon}
+        </span>
         <span className="w-full truncate text-center text-[11px] text-muted-foreground group-aria-pressed:text-foreground">
           {tile.label}
         </span>

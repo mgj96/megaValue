@@ -23,6 +23,15 @@ describe("GET /api/game", () => {
     expect(data.restore["22"]).toEqual({ spareCount: 4, meso: 24168000000 });
   });
 
+  it("구매가를 주면 그 값으로 가치를 계산한다", async () => {
+    const base = await (await get("?level=200")).json();
+    const pricey = await (await get("?level=200&price=1000000000")).json();
+
+    expect(base.spareCost).toBe(500000000);
+    expect(pricey.spareCost).toBe(1000000000);
+    expect(pricey.values[10]).toBeGreaterThan(base.values[10]);
+  });
+
   it("레벨이 없거나 이상하면 400", async () => {
     expect((await get("")).status).toBe(400);
     expect((await get("?level=abc")).status).toBe(400);

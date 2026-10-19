@@ -13,7 +13,7 @@ export const StarStrip = ({ star, max }: { star: number; max: number }) => (
         key={index}
         className={cn(
           "h-3 rounded-[3px] transition-all duration-300",
-          index < star ? "scale-100 bg-foreground" : "scale-90 bg-muted",
+          index < star ? "scale-100 bg-yellow-400" : "scale-90 bg-muted",
         )}
         style={{ transitionDelay: index < star ? `${Math.min(index, 14) * 12}ms` : "0ms" }}
       />

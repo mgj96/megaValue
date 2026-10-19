@@ -2,18 +2,24 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { buildGameData } from "~/gameData";
+import { DEFAULT_PRICE } from "~/items";
 import { getEquipment } from "~/nexon";
 import { loadStarforceRules } from "~/rules";
 import { isAdminTestName, sampleEquipment } from "~/testCase";
 
 export const runtime = "nodejs";
 
-const levelSchema = z.coerce.number().int().min(1).max(300);
+const querySchema = z.object({
+  level: z.coerce.number().int().min(1).max(300),
+  /** 구매가(메소). 없으면 기본값. */
+  price: z.coerce.number().int().min(1).max(1e14).default(DEFAULT_PRICE),
+});
 
-/** 착용 레벨별 게임 데이터. */
+/** 착용 레벨과 구매가별 게임 데이터. */
 export async function GET(request: Request) {
-  const level = levelSchema.safeParse(new URL(request.url).searchParams.get("level"));
-  const data = level.success ? buildGameData(level.data) : null;
+  const params = Object.fromEntries(new URL(request.url).searchParams);
+  const query = querySchema.safeParse(params);
+  const data = query.success ? buildGameData(query.data.level, query.data.price) : null;
   if (!data) return NextResponse.json({ error: "지원하지 않는 레벨이에요." }, { status: 400 });
   return NextResponse.json(data);
 }

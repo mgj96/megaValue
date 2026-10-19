@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { SectionContainer } from "~/components/section-container";
+import { StarText } from "~/components/star-text";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { formatMeso, formatPct } from "~/format";
@@ -130,7 +131,7 @@ export const TablePanel = async ({
 
       {rows?.example && query.success && (
         <ExampleCard
-          title={`${setLabel} ★${query.data.star}→${query.data.star + 1} 1회 시도 예제`}
+          title={<StarText>{`${setLabel} ★${query.data.star}→${query.data.star + 1} 1회 시도 예제`}</StarText>}
           evaluation={rows.example}
         />
       )}
@@ -156,7 +157,7 @@ export const TablePanel = async ({
                 {rows.items.map(({ from, row, attempt, expected, recovery }) => (
                   <tr key={from} className="border-t border-border">
                     <td className="py-2 text-left">
-                      ★{from}→{from + 1}
+                      <StarText>{`★${from}→${from + 1}`}</StarText>
                     </td>
                     <td>{formatMeso(attempt)}</td>
                     <td>{formatPct(row.success * 100)}</td>
