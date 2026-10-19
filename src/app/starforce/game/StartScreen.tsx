@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 
-import { PageTitle } from "~/components/page-title";
 import { SectionContainer } from "~/components/section-container";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -85,7 +84,6 @@ export const StartScreen = ({
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-4">
-      <PageTitle>스타포스 키우기</PageTitle>
 
       <SectionContainer>
         <Tabs defaultValue="scratch">

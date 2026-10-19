@@ -19,7 +19,6 @@ import {
   type RecoveryChoice,
 } from "~/game";
 import { AnimatedMeso } from "~/components/animated-meso";
-import { PageTitle } from "~/components/page-title";
 import { SectionContainer } from "~/components/section-container";
 import { StarStrip } from "~/components/star-strip";
 import { Button } from "~/components/ui/button";
@@ -96,7 +95,6 @@ export const GameScreen = () => {
   if (!data) {
     return (
       <div className="mx-auto flex max-w-2xl flex-col gap-4">
-        <PageTitle>스타포스 키우기</PageTitle>
         <SectionContainer>
           <p className="text-sm text-muted-foreground">
             {loadError ?? "게임 데이터를 불러오는 중이에요…"}
@@ -122,7 +120,6 @@ export const GameScreen = () => {
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-4">
-      <PageTitle>스타포스 키우기</PageTitle>
       <p className="-mt-2 text-sm text-muted-foreground">
         {state.mode === "mine" ? `내 장비 · ${state.itemName}` : `처음부터 · ${state.level}제`}
       </p>

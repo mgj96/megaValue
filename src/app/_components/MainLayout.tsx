@@ -11,8 +11,7 @@ import { Footer } from "./Footer";
 
 const NAV = [
   { href: "/", label: "장비 진단", short: "진단" },
-  { href: "/starforce/game", label: "스타포스 키우기", short: "키우기" },
-  { href: "/starforce", label: "스타포스 테스트", short: "테스트" },
+  { href: "/starforce", label: "스타포스", short: "스타포스" },
 ];
 
 interface Props {
@@ -22,6 +21,8 @@ interface Props {
 
 export const MainLayout = ({ children, disableFooter }: Props) => {
   const pathname = usePathname();
+  const isActive = (href: string) =>
+    href === "/" ? pathname === "/" : pathname.startsWith(href);
 
   return (
     <div className="flex h-screen max-h-screen flex-col">
@@ -33,10 +34,10 @@ export const MainLayout = ({ children, disableFooter }: Props) => {
                 <Link
                   key={href}
                   href={href}
-                  aria-current={pathname === href ? "page" : undefined}
+                  aria-current={isActive(href) ? "page" : undefined}
                   className={cx(
                     "rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors hover:bg-accent",
-                    pathname === href ? "bg-accent text-foreground" : "text-muted-foreground",
+                    isActive(href) ? "bg-accent text-foreground" : "text-muted-foreground",
                   )}
                 >
                   <span className="sm:hidden">{short}</span>

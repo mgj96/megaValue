@@ -1,9 +1,6 @@
-import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 
-import { GameScreen } from "./GameScreen";
-
-export const metadata: Metadata = { title: "스타포스 키우기 | 메이플 장비 진단" };
-
-export default function GamePage() {
-  return <GameScreen />;
+/** 게임은 /starforce 의 "게임" 탭으로 옮겼다. 예전 주소는 그리로 보낸다. */
+export default function LegacyGamePage() {
+  redirect("/starforce");
 }
