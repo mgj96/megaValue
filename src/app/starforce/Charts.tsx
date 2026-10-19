@@ -78,9 +78,9 @@ export const ExampleCard = ({
         1회 기대 손익 {signed(expectedNet)}
       </p>
       <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-        원가 가치는 &quot;대체 장비 + 0성부터 그 성까지 키우는 기대 비용&quot;이에요(★ 가치{" "}
-        {formatMeso(value)} → {formatMeso(nextValue)}, 1회 시도 {formatMeso(attemptCost)}). 시세가 아니라
-        추정이라, 평균적으로는 복구를 싸게 하는 만큼만 이득이에요.{" "}
+        원가 가치는 대체 장비 값에 0성부터 그 성까지 키우는 기대 비용을 더한 금액이에요(★ 가치{" "}
+        {formatMeso(value)} → {formatMeso(nextValue)}, 1회 시도 {formatMeso(attemptCost)}). 시세는 반영하지
+        않았고, 평균으로 보면 복구를 싸게 하는 만큼만 이득이 나요.{" "}
         {recoveryCost > 0
           ? `파괴되면 ${recoveryBy}(${formatMeso(recoveryCost)})로 같은 성까지 되돌려요.`
           : "이 구간은 파괴가 없어요."}
@@ -115,7 +115,7 @@ export const RecoveryBars = ({
         return (
           <div key={star}>
             <p className="mb-1 text-xs text-muted-foreground">
-              ★{star} 파괴 시 — {recovery.cheaper}가 유리
+              ★{star} 파괴 시 {recovery.cheaper}가 유리
             </p>
             <div className="flex flex-col gap-0.5">
               {bars.map((bar) => (

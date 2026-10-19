@@ -130,7 +130,7 @@ export const recommendSlots = (diagnoses: ItemDiagnosis[]): SlotRecommendation[]
 
     if (d.potential.grade) {
       if (d.potential.grade !== "레전드리") {
-        reasons.push(`윗잠재 등급: ${d.potential.grade} — 큐브로 올릴 여지가 있어요.`);
+        reasons.push(`윗잠재 ${d.potential.grade}. 큐브로 등급을 올릴 수 있어요.`);
       }
       if (!d.additionalPotential.grade) reasons.push("에디셔널 잠재가 비어 있어요.");
     }
@@ -160,7 +160,7 @@ export const buildReply = (
       equipment.date ? ` (기준일 ${equipment.date.slice(0, 10)})` : ""
     }.`,
     "",
-    "[스타포스 — 다음 1성 시도]",
+    "[스타포스 다음 1성 시도]",
   ];
 
   const enhanceable = diagnoses.filter((d) => d.next);
@@ -258,7 +258,7 @@ export const buildDiagnosisPrompt = (
     "[데이터: 코드가 계산한 값. 기대 메소는 파괴 시 대체 장비 비용 제외, 비용식은 비공식 출처]",
     ...itemLines,
     "",
-    `[규칙 v${rules.version} — 이 장비들에 필요한 행만 발췌]`,
+    `[규칙 v${rules.version}, 이 장비들에 필요한 행만 발췌]`,
     ...starRules,
     "스타포스는 실패해도 성이 내려가지 않고, 15성 이상에서만 파괴될 수 있다. 파괴 방지는 15~17성에서 기본 비용의 200%를 추가로 낸다.",
     ...cubeLines,

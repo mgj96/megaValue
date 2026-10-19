@@ -45,7 +45,9 @@ export async function POST(request: Request) {
       const maxStar = maxStarOf(item.level);
       if (item.level <= 0 || maxStar === null) return [];
       const star = Number.isFinite(item.starforce) ? item.starforce : 0;
-      return [{ slot: item.slot, name: item.name, level: item.level, star, maxStar }];
+      return [
+        { slot: item.slot, name: item.name, icon: item.icon, level: item.level, star, maxStar },
+      ];
     });
 
     return NextResponse.json({ characterClass: equipment.characterClass, items });

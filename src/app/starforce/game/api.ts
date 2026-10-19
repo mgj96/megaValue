@@ -3,6 +3,8 @@ import type { GameData } from "~/game";
 export type MyItem = {
   slot: string;
   name: string;
+  /** 넥슨이 주는 아이템 아이콘 주소. 비어 있을 수 있다. */
+  icon: string;
   level: number;
   star: number;
   maxStar: number;

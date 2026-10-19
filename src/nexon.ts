@@ -29,6 +29,7 @@ type RawItem = {
   item_equipment_part: string;
   item_equipment_slot: string;
   item_name: string;
+  item_icon: string;
   starforce: string;
   starforce_scroll_flag: string;
   scroll_upgradeable_count: string;
@@ -73,6 +74,7 @@ export const getEquipment = async (
       part: item.item_equipment_part,
       slot: item.item_equipment_slot,
       name: item.item_name,
+      icon: item.item_icon,
       level: item.item_base_option.base_equipment_level,
       starforce: Number(item.starforce),
       starforceScrollFlag: item.starforce_scroll_flag,

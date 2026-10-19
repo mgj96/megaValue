@@ -28,8 +28,13 @@ export type GameState = {
   mode: GameMode;
   /** 장비 착용 레벨. GameData 를 이 레벨로 불러온다. */
   level: number;
-  /** "내 장비" 모드에서 고른 장비 이름. */
+  /** 고른 장비 이름(예: "에테르넬 모자", 내 장비면 게임 속 이름). */
   itemName: string | null;
+  /** 처음부터 하기에서 고른 세트와 부위. 아이콘을 그릴 때 쓴다. */
+  setId: string | null;
+  slot: string | null;
+  /** 내 장비 모드에서 넥슨이 준 아이콘 주소. */
+  icon: string | null;
   /** 시작 시점 자산(메소 + 장비 원가 가치). 손익 기준이다. */
   startAssets: number;
   meso: number;
@@ -51,6 +56,9 @@ export const newGame = ({
   meso,
   star = null,
   itemName = null,
+  setId = null,
+  slot = null,
+  icon = null,
   startAssets = meso,
 }: {
   mode: GameMode;
@@ -58,11 +66,17 @@ export const newGame = ({
   meso: number;
   star?: number | null;
   itemName?: string | null;
+  setId?: string | null;
+  slot?: string | null;
+  icon?: string | null;
   startAssets?: number;
 }): GameState => ({
   mode,
   level,
   itemName,
+  setId,
+  slot,
+  icon,
   startAssets,
   meso,
   star,

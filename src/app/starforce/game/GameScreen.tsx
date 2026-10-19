@@ -20,6 +20,7 @@ import {
 } from "~/game";
 import { AnimatedMeso } from "~/components/animated-meso";
 import { SectionContainer } from "~/components/section-container";
+import { ItemVisual } from "~/components/item-visual";
 import { StarStrip } from "~/components/star-strip";
 import { Button } from "~/components/ui/button";
 import { cn } from "~/shared/style";
@@ -55,6 +56,7 @@ export const GameScreen = () => {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
   const [fx, setFx] = useState<Fx | null>(null);
+  const [guardOn, setGuardOn] = useState(false);
 
   useEffect(() => {
     const saved = read();
@@ -120,9 +122,7 @@ export const GameScreen = () => {
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-4">
-      <p className="-mt-2 text-sm text-muted-foreground">
-        {state.mode === "mine" ? `내 장비 · ${state.itemName}` : `처음부터 · ${state.level}제`}
-      </p>
+      <p className="-mt-2 text-sm text-muted-foreground">{state.mode === "mine" ? "내 장비로 하기" : "처음부터 하기"}</p>
 
       <SectionContainer>
         <dl className="grid grid-cols-3 gap-3 text-center">
@@ -146,7 +146,7 @@ export const GameScreen = () => {
 
       <SectionContainer
         key={fx?.id}
-        title={state.star !== null ? `${data.level}제 장비 ★${state.star}` : "장비 없음"}
+        title={state.itemName ?? "장비"}
         className={cn(
           "relative overflow-hidden",
           fx?.kind === "success" && "animate-star-pop",
@@ -163,60 +163,92 @@ export const GameScreen = () => {
         )}
 
         {state.star !== null && !busy && (
-          <>
-            <StarStrip star={state.star} max={data.maxStar} />
-            <p className="mt-1 text-xs text-muted-foreground">
-              ★{state.star} / {data.maxStar} · 지금 팔면 {formatMeso(data.values[state.star])}
+          <div className="flex flex-col items-center gap-3">
+            <button
+              type="button"
+              disabled={maxed || state.meso < (guardOn && canGuard ? guardCost : attemptCost)}
+              onClick={() => tryEnhance(state, data, guardOn && canGuard)}
+              aria-label={`${state.itemName ?? "장비"} 강화하기`}
+              className="group relative size-36 rounded-2xl border-2 bg-muted/50 p-2 shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:border-primary hover:shadow-md active:translate-y-0 active:scale-95 disabled:pointer-events-none disabled:opacity-60"
+            >
+              <ItemVisual
+                icon={state.icon}
+                setId={state.setId}
+                slot={state.slot}
+                label={state.itemName ?? undefined}
+                className="rounded-xl"
+              />
+              <span className="absolute left-1.5 top-1.5 rounded bg-primary px-1.5 text-xs font-bold leading-5 text-primary-foreground">
+                ★{state.star}
+              </span>
+              {!maxed && (
+                <span className="absolute inset-x-2 bottom-2 rounded-md bg-background/85 py-0.5 text-center text-xs font-semibold opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+                  눌러서 강화
+                </span>
+              )}
+            </button>
+
+            <p className="text-sm font-semibold">
+              {maxed ? "최대 성이에요" : `강화 1회 ${formatMeso(guardOn && canGuard ? guardCost : attemptCost)}`}
             </p>
+
+            <div className="w-full">
+              <StarStrip star={state.star} max={data.maxStar} />
+              <p className="mt-1 text-xs text-muted-foreground">
+                ★{state.star} / {data.maxStar}, 지금 팔면 {formatMeso(data.values[state.star])}
+              </p>
+            </div>
+
             {row && !maxed && (
-              <>
-                <div className="mt-3 flex h-3 gap-0.5" role="img" aria-label="성공 유지 파괴 확률">
+              <div className="w-full">
+                <div className="flex h-3 gap-0.5" role="img" aria-label="성공 유지 파괴 확률">
                   {[
                     { label: "성공", p: row.success, bg: "bg-foreground" },
                     { label: "유지", p: row.maintain, bg: "bg-muted-foreground" },
-                    { label: "파괴", p: row.destroy, bg: "bg-destructive" },
+                    { label: "파괴", p: guardOn && canGuard ? 0 : row.destroy, bg: "bg-destructive" },
                   ]
                     .filter(({ p }) => p > 0)
                     .map(({ label, p, bg }) => (
-                      <div
-                        key={label}
-                        className={cn("bar-grow rounded-[4px]", bg)}
-                        style={{ width: `${p * 100}%` }}
-                      />
+                      <div key={label} className={cn("bar-grow rounded-[4px]", bg)} style={{ width: `${p * 100}%` }} />
                     ))}
                 </div>
                 <p className="mt-1 text-xs text-foreground/80">
-                  성공 {formatPct(row.success * 100)} · 유지 {formatPct(row.maintain * 100)} · 파괴{" "}
-                  {formatPct(row.destroy * 100)}
+                  성공 {formatPct(row.success * 100)}, 유지{" "}
+                  {formatPct((row.maintain + (guardOn && canGuard ? row.destroy : 0)) * 100)}, 파괴{" "}
+                  {formatPct((guardOn && canGuard ? 0 : row.destroy) * 100)}
                 </p>
-              </>
+              </div>
             )}
-            <div className="mt-4 flex flex-wrap gap-2">
-              {!maxed && (
-                <Button disabled={state.meso < attemptCost} onClick={() => tryEnhance(state, data, false)}>
-                  강화 ({formatMeso(attemptCost)})
-                </Button>
-              )}
+
+            <div className="flex flex-wrap items-center justify-center gap-3">
               {canGuard && (
-                <Button
-                  variant="secondary"
-                  disabled={state.meso < guardCost}
-                  onClick={() => tryEnhance(state, data, true)}
-                >
-                  파괴 방지 강화 ({formatMeso(guardCost)})
-                </Button>
+                <label className="flex cursor-pointer items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={guardOn}
+                    onChange={(event) => setGuardOn(event.target.checked)}
+                    className="size-4 accent-primary"
+                  />
+                  파괴 방지 (비용 3배)
+                </label>
               )}
               <Button variant="outline" onClick={() => update(sell(state, data))}>
                 판매 (+{formatMeso(data.values[state.star])})
               </Button>
             </div>
-          </>
+          </div>
         )}
 
         {state.star === null && !busy && !over && (
-          <Button onClick={() => update(buy(state, data))}>
-            장비 사기 ({formatMeso(data.spareCost)})
-          </Button>
+          <button
+            type="button"
+            onClick={() => update(buy(state, data))}
+            className="mx-auto flex size-36 flex-col items-center justify-center gap-1 rounded-2xl border-2 border-dashed text-sm text-muted-foreground transition-all hover:border-primary hover:text-foreground active:scale-95"
+          >
+            <span className="text-3xl leading-none">+</span>
+            <span className="font-semibold">장비 사기</span>
+            <span className="text-xs">{formatMeso(data.spareCost)}</span>
+          </button>
         )}
 
         {busy && state.destroyedAt !== null && (

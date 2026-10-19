@@ -9,6 +9,8 @@
 - 수치는 출처 URL을 `rules/*.yaml` 주석에 남긴다. 출처 없는 수치는 넣지 말고 `TODO`.
 - 순위는 코드가 정하고 LLM은 설명만 한다. 대화창은 LLM 없이 템플릿 문장.
 - 넥슨 오픈 API 키는 서버에 저장·로그하지 않는다(요청 헤더로만).
+- 화면 문구는 [im-not-ai](https://github.com/epoko77-ai/im-not-ai) 규칙을 따른다: 대시(—)로 덧붙이기, "A가 아니라 B" 대구, 따옴표 강조, "다음과 같은"·"결론적으로" 같은 결산 어투를 줄이고 해요체 평서문으로 쓴다.
+- 금액은 억 단위로 쓰고 끝의 `.00`은 붙이지 않는다(`src/format.ts`). 장비는 레벨이 아니라 세트 이름(에테르넬, 칠흑 등)으로 고른다.
 
 ## 구조
 
@@ -17,6 +19,7 @@
 - `src/nexon.ts` 넥슨 오픈 API(OCID → 장비).
 - `src/diagnose.ts` 장비별 진단, 대화 문장, Gemini용 진단 프롬프트(필요한 규칙 행만 발췌).
 - `src/app/starforce/` 스타포스 페이지(`/starforce`) 하나에 탭 두 개: 게임(기본)과 계산표(`?tab=table`, `TablePanel.tsx`). 예전 `/starforce/game`은 `/starforce`로 리다이렉트, 예전 `/starforce?level=&star=` 주소는 계산표로 간다. 게임은 브라우저 저장(`game/GameScreen.tsx`, 로직은 `src/game.ts`, 레벨별 데이터는 `src/gameData.ts` → `GET /api/game?level=`). 모드 2가지: 처음부터 하기(레벨 선택, ★0에서 시작)와 내 장비로 하기(`POST /api/game`으로 장비를 불러와 현재 성에서 시작, 넥슨 키는 헤더로만). 게임 판매가는 원가 기반 가정값이고 계정·공유는 아직 없다.
+- `src/items.ts` 아이템 세트(이름, 착용 레벨, 색, 부위). 레벨은 커뮤니티 값이라 공식 확인 전이다. 아이콘은 `src/components/item-icon.tsx`의 자체 제작 SVG이고, 내 장비 모드는 넥슨이 주는 `item_icon`을 쓴다. 장비창 격자는 `equipment-window.tsx`.
 - `src/app/api/diagnose/route.ts` POST. `src/app/_components/ChatScreen.tsx` 화면.
 - UI: shadcn/ui(new-york, zinc, CSS 변수 토큰은 `src/app/globals.css`, 라이트/다크는 `next-themes`). 컴포넌트는 `src/components/ui/`, 조합 컴포넌트는 `src/components/`(`SectionContainer`, `PageTitle`, `ThemeToggle`, `AnimatedMeso`, `StarStrip`). `components.json`이 있어 새 컴포넌트는 `pnpm dlx shadcn@latest add <name>`로 추가한다(클라우드 샌드박스는 shadcn 레지스트리가 막혀 있어 소스를 직접 옮겼다). 색은 `bg-primary` 같은 토큰만 쓰고 hex를 직접 쓰지 않는다. 연출은 `tailwind.config.ts`의 `star-pop`·`shake`·`destroy-flash` 키프레임과 framer-motion, 모션 줄이기 설정은 `globals.css`에서 일괄 처리.
 - 배포(Dockerfile, compose, `manage.sh`, 워크플로우)는 원본을 유지하되 Prisma/Postgres, HeroUI, 스토리북은 제거함.

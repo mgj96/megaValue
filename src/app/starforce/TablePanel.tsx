@@ -1,10 +1,11 @@
 import { z } from "zod";
 
-import { formatMeso, formatPct } from "~/format";
-import { loadStarforceRules } from "~/rules";
 import { SectionContainer } from "~/components/section-container";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import { formatMeso, formatPct } from "~/format";
+import { ITEM_SETS, setById, setNameOfLevel } from "~/items";
+import { loadStarforceRules } from "~/rules";
 import { compareRecovery, evaluateAttempt, expectedCostOfStep, getCosts } from "~/starforce";
 
 import { ExampleCard, RecoveryBars } from "./Charts";
@@ -27,7 +28,9 @@ export const TablePanel = async ({
 }: {
   searchParams: Record<string, string | string[] | undefined>;
 }) => {
-  const query = querySchema.safeParse(searchParams);
+  const picked = typeof searchParams.set === "string" ? setById(searchParams.set) : undefined;
+  const query = querySchema.safeParse({ ...searchParams, level: picked?.level ?? searchParams.level });
+  const setLabel = query.success ? (picked?.name ?? setNameOfLevel(query.data.level) ?? `${query.data.level}제`) : "";
   const rules = loadStarforceRules();
 
   const rows = (() => {
@@ -79,12 +82,18 @@ export const TablePanel = async ({
         <form className="flex flex-wrap items-end gap-3">
           <input type="hidden" name="tab" value="table" />
           <label className="flex flex-1 flex-col gap-1 text-sm">
-            장비 착용 레벨
-            <Input
-              name="level"
-              type="number"
-              defaultValue={query.success ? query.data.level : 200}
-                          />
+            세트
+            <select
+              name="set"
+              defaultValue={picked?.id ?? ITEM_SETS.find((x) => query.success && x.level === query.data.level)?.id ?? "eternal"}
+              className="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {ITEM_SETS.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.name}
+                </option>
+              ))}
+            </select>
           </label>
           <label className="flex flex-1 flex-col gap-1 text-sm">
             현재 성
@@ -113,15 +122,15 @@ export const TablePanel = async ({
         <SectionContainer>
           <p className="text-sm text-muted-foreground">
             {rows.maxStar === null
-              ? "이 레벨은 규칙 구간 밖이에요."
-              : `이 레벨의 최대 성은 ${rows.maxStar}성이라 더 강화할 수 없어요.`}
+              ? "이 장비는 규칙 구간 밖이에요."
+              : `이 장비의 최대 성은 ${rows.maxStar}성이라 더 강화할 수 없어요.`}
           </p>
         </SectionContainer>
       )}
 
       {rows?.example && query.success && (
         <ExampleCard
-          title={`예제 — ${query.data.level}제 ★${query.data.star}→${query.data.star + 1} 1회 시도`}
+          title={`${setLabel} ★${query.data.star}→${query.data.star + 1} 1회 시도 예제`}
           evaluation={rows.example}
         />
       )}
@@ -162,11 +171,11 @@ export const TablePanel = async ({
               </tbody>
             </table>
           </div>
-          <p className="mt-3 text-xs text-muted-foreground">
-            {RESTORE_STAR}성 복구는 파괴되면 {RESTORE_STAR}성으로 돌아가 그 성까지 다시 올리는 기대 메소(대체 장비 1개 포함),
-            확정복구는 터진 성 그대로 복구하는 재료 비용이에요. 23성 이상에서 파괴되면 22성으로 설정되므로 22성까지
-            돌아오는 비용을 비교해요. 확정복구는 130·135·140·145·150·160·200·250제만 표가 있어 나머지는 &quot;-&quot;예요. 비용식과 확정복구 표는 비공식 출처(원본 mesulive)이고, 복구 이벤트
-            할인은 반영하지 않았어요.
+          <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+            {RESTORE_STAR}성 복구는 파괴되면 {RESTORE_STAR}성으로 돌아가 그 성까지 다시 올리는 기대 메소예요(대체 장비 1개
+            포함). 확정복구는 터진 성 그대로 복구하는 재료 비용이고, 23성 이상에서 파괴되면 22성으로 설정되니 22성까지
+            돌아오는 비용을 비교해요. 확정복구 표는 파프니르, 앱솔랩스, 칠흑, 여명, 아케인셰이드, 에테르넬 구간에만
+            있어요. 비용식과 확정복구 표는 비공식 출처(원본 mesulive)를 썼고 복구 이벤트 할인은 넣지 않았어요.
           </p>
         </SectionContainer>
       )}

@@ -13,6 +13,7 @@ const item = (
   part: "모자",
   slot: "모자",
   name: "테스트 모자",
+  icon: "",
   level: 200,
   starforce: 5,
   starforceScrollFlag: "미사용",
@@ -153,7 +154,7 @@ describe("recommendSlots", () => {
       item({ potential: { grade: "에픽", options: ["STR +6%", null, null] } }),
     );
 
-    expect(r.reasons).toContain("윗잠재 등급: 에픽 — 큐브로 올릴 여지가 있어요.");
+    expect(r.reasons).toContain("윗잠재 에픽. 큐브로 등급을 올릴 수 있어요.");
     expect(r.reasons).toContain("에디셔널 잠재가 비어 있어요.");
   });
 });
