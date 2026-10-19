@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { loadStarforceTable } from "./rules";
-import { expectedCostOfStep, getCosts, type StarRow } from "./starforce";
+import { loadStarforceRules, loadStarforceTable } from "./rules";
+import { compareRecovery, expectedCostOfStep, getCosts, type StarRow } from "./starforce";
 
 const flat = (row: StarRow): StarRow[] => Array.from({ length: 30 }, () => row);
 
@@ -61,5 +61,40 @@ describe("rules/starforce.yaml", () => {
     const row = loadStarforceTable()[22];
     expect(row.success).toBeCloseTo(0.15);
     expect(row.destroy).toBeCloseTo(0.17);
+  });
+});
+
+describe("compareRecovery", () => {
+  const rules = loadStarforceRules();
+  const compare = (star: number, spareCost: number, level = 200) =>
+    compareRecovery({
+      equipLevel: level,
+      table: rules.table,
+      star,
+      spareCost,
+      restore: rules.restoreOf(level, star),
+    });
+
+  it("대체 장비가 공짜면 낮은 성은 12성 복구, 높은 성은 확정복구가 싸다", () => {
+    expect(compare(17, 0)?.cheaper).toBe("12성 복구");
+    expect(compare(22, 0)?.cheaper).toBe("확정복구");
+  });
+
+  it("12성 복구 비용은 12성부터 그 성 직전까지 기대 비용의 합 + 대체 장비", () => {
+    const spare = 3e8;
+    const sum = [12, 13, 14, 15, 16].reduce(
+      (acc, from) =>
+        acc + expectedCostOfStep({ equipLevel: 200, table: rules.table, fromStar: from, spareCost: spare }),
+      0,
+    );
+
+    expect(compare(17, spare)?.noRestoreCost).toBeCloseTo(sum + spare);
+    expect(compare(17, spare)?.restoreCost).toBeCloseTo(rules.restoreOf(200, 17)!.meso + spare);
+  });
+
+  it("표에 없는 레벨·성이면 null", () => {
+    expect(compare(17, 0, 100)).toBeNull();
+    expect(compare(25, 0)).toBeNull();
+    expect(compare(20, 0, 130)).toBeNull();
   });
 });

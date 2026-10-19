@@ -4,7 +4,7 @@ import { z } from "zod";
 import { formatMeso, formatPct } from "~/diagnose";
 import { loadStarforceRules } from "~/rules";
 import { Button, PageTitle, SectionContainer } from "~/shared/ui";
-import { expectedCostOfStep, getCosts } from "~/starforce";
+import { compareRecovery, expectedCostOfStep, getCosts } from "~/starforce";
 
 export const metadata: Metadata = { title: "스타포스 테스트 | 메이플 장비 진단" };
 
@@ -13,7 +13,11 @@ const RESTORE_STAR = 12;
 const querySchema = z.object({
   level: z.coerce.number().int().min(1).max(300),
   star: z.coerce.number().int().min(0).max(29),
+  /** 대체 장비 가격(억). */
+  spare: z.coerce.number().min(0).max(100000).default(0),
 });
+
+const HUNDRED_MILLION = 100_000_000;
 
 const inputClass =
   "w-full rounded-xl bg-default-100 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary";
@@ -28,13 +32,14 @@ export default async function StarforcePage({
 
   const rows = (() => {
     if (!query.success) return null;
-    const { level, star } = query.data;
+    const { level, star, spare } = query.data;
+    const spareCost = spare * HUNDRED_MILLION;
     const maxStar = rules.maxStarOf(level);
     if (maxStar === null || star >= maxStar) return { maxStar, items: [] };
 
     const last = Math.min(maxStar, 30);
     const expected = Array.from({ length: last }, (_, from) =>
-      expectedCostOfStep({ equipLevel: level, table: rules.table, fromStar: from, spareCost: 0 }),
+      expectedCostOfStep({ equipLevel: level, table: rules.table, fromStar: from, spareCost }),
     );
     const costs = getCosts(level);
 
@@ -43,9 +48,17 @@ export default async function StarforcePage({
       items: Array.from({ length: last - star }, (_, i) => {
         const from = star + i;
         const row = rules.table[from];
-        // 파괴 시 RESTORE_STAR 로 돌아가 현재 성까지 다시 올리는 기대 비용
-        const climbBack = expected.slice(RESTORE_STAR, from).reduce((a, b) => a + b, 0);
-        return { from, row, attempt: costs[from], expected: expected[from], climbBack };
+        const recovery =
+          row.destroy > 0
+            ? compareRecovery({
+                equipLevel: level,
+                table: rules.table,
+                star: from,
+                spareCost,
+                restore: rules.restoreOf(level, from),
+              })
+            : null;
+        return { from, row, attempt: costs[from], expected: expected[from], recovery };
       }),
     };
   })();
@@ -71,6 +84,16 @@ export default async function StarforcePage({
               name="star"
               type="number"
               defaultValue={query.success ? query.data.star : 17}
+              className={inputClass}
+            />
+          </label>
+          <label className="flex flex-1 flex-col gap-1 text-sm">
+            대체 장비 가격(억)
+            <input
+              name="spare"
+              type="number"
+              step="any"
+              defaultValue={query.success ? query.data.spare : 0}
               className={inputClass}
             />
           </label>
@@ -102,11 +125,13 @@ export default async function StarforcePage({
                   <th>유지</th>
                   <th>파괴</th>
                   <th>1성 기대 메소</th>
-                  <th>파괴 시 {RESTORE_STAR}성 복구 후 재강화</th>
+                  <th>파괴 시 {RESTORE_STAR}성 복구</th>
+                  <th>파괴 시 확정복구</th>
+                  <th>유리한 쪽</th>
                 </tr>
               </thead>
               <tbody>
-                {rows.items.map(({ from, row, attempt, expected, climbBack }) => (
+                {rows.items.map(({ from, row, attempt, expected, recovery }) => (
                   <tr key={from} className="border-t border-default-100">
                     <td className="py-2 text-left">
                       ★{from}→{from + 1}
@@ -116,15 +141,19 @@ export default async function StarforcePage({
                     <td>{formatPct(row.maintain * 100)}</td>
                     <td>{formatPct(row.destroy * 100)}</td>
                     <td>{formatMeso(expected)}</td>
-                    <td>{row.destroy > 0 ? formatMeso(climbBack) : "-"}</td>
+                    <td>{recovery ? formatMeso(recovery.noRestoreCost) : "-"}</td>
+                    <td>{recovery ? formatMeso(recovery.restoreCost) : "-"}</td>
+                    <td>{recovery ? recovery.cheaper : "-"}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
           <p className="mt-3 text-xs text-default-500">
-            1성 기대 메소는 파괴 시 {RESTORE_STAR}성 복구 + 대체 장비 비용 0 가정이에요. 비용식은 비공식 출처고,
-            확정 복구(터진 성 그대로 복구)와의 비교는 산식이 확정되면 추가해요.
+            {RESTORE_STAR}성 복구는 파괴되면 {RESTORE_STAR}성으로 돌아가 그 성까지 다시 올리는 기대 메소(대체 장비 1개 포함),
+            확정복구는 터진 성 그대로 복구하는 재료 비용이에요. 확정복구는 15~22성, 130·135·140·145·150·160·200·250제만
+            표가 있어 나머지는 &quot;-&quot;예요. 비용식과 확정복구 표는 비공식 출처(원본 mesulive)이고, 복구 이벤트
+            할인은 반영하지 않았어요.
           </p>
         </SectionContainer>
       )}

@@ -72,6 +72,20 @@ describe("buildReply", () => {
     expect(reply).toContain("레전드리 (STR +12%)");
   });
 
+  it("파괴 가능 구간이면 확정복구와 12성 복구 중 유리한 쪽을 알려 준다", () => {
+    const equipment = equipmentOf(item({ starforce: 22 }));
+    const reply = buildReply(equipment, diagnoseItems(equipment, rules));
+
+    expect(reply).toContain("파괴 시 확정복구가 유리");
+  });
+
+  it("파괴 없는 구간에는 복구 비교를 붙이지 않는다", () => {
+    const equipment = equipmentOf(item({ starforce: 5 }));
+    const reply = buildReply(equipment, diagnoseItems(equipment, rules));
+
+    expect(reply).not.toContain("복구");
+  });
+
   it("강화할 장비가 없으면 그렇게 알려 준다", () => {
     const equipment = equipmentOf(item({ starforce: rules.maxStarOf(200)! }));
     const reply = buildReply(equipment, diagnoseItems(equipment, rules));

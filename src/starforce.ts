@@ -1,5 +1,7 @@
 import { match } from "ts-pattern";
 
+import type { RestoreCost } from "./rules";
+
 /** [성공, 유지, 파괴] 확률 (0~1). rules/starforce.yaml 에서 온다. */
 export type StarRow = { success: number; maintain: number; destroy: number };
 
@@ -85,4 +87,45 @@ export const expectedCostOfStep = ({
   }
 
   return result;
+};
+
+export type RecoveryComparison = {
+  /** 확정복구(그 성 그대로 복구) 총 비용. */
+  restoreCost: number;
+  /** 12성 복구 후 그 성까지 다시 올리는 기대 비용(대체 장비 1개 포함). */
+  noRestoreCost: number;
+  cheaper: "확정복구" | "12성 복구";
+};
+
+/**
+ * star 에서 파괴됐을 때 확정복구와 12성 복구 중 어느 쪽이 싼지 비교한다.
+ * 확정복구 재료가 없는 레벨·성이면 null.
+ */
+export const compareRecovery = ({
+  equipLevel,
+  table,
+  star,
+  spareCost,
+  restore,
+}: {
+  equipLevel: number;
+  table: StarRow[];
+  star: number;
+  spareCost: number;
+  restore: RestoreCost | null;
+}): RecoveryComparison | null => {
+  if (!restore) return null;
+
+  let climb = 0;
+  for (let from = RESTORE_STAR; from < star; from++) {
+    climb += expectedCostOfStep({ equipLevel, table, fromStar: from, spareCost });
+  }
+
+  const noRestoreCost = spareCost + climb;
+  const restoreCost = restore.spareCount * spareCost + restore.meso;
+  return {
+    restoreCost,
+    noRestoreCost,
+    cheaper: restoreCost < noRestoreCost ? "확정복구" : "12성 복구",
+  };
 };

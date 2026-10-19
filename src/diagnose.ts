@@ -2,7 +2,12 @@ import { z } from "zod";
 
 import type { Equipment } from "./nexon";
 import { loadRule, type StarforceRules } from "./rules";
-import { expectedCostOfStep, getCosts } from "./starforce";
+import {
+  compareRecovery,
+  expectedCostOfStep,
+  getCosts,
+  type RecoveryComparison,
+} from "./starforce";
 
 type Item = Equipment["items"][number];
 
@@ -20,6 +25,8 @@ export type ItemDiagnosis = {
     mesoPerAttempt: number;
     /** 다음 1성까지 기대 메소. 파괴 시 대체 장비 비용은 포함하지 않는다(spareCost = 0). */
     expectedMeso: number;
+    /** 파괴 시 확정복구 vs 12성 복구. 대체 장비 비용 0 가정. 비교할 수 없으면 null. */
+    recovery: RecoveryComparison | null;
   };
   potential: Item["potential"];
   additionalPotential: Item["additionalPotential"];
@@ -27,7 +34,7 @@ export type ItemDiagnosis = {
 
 export const diagnoseItems = (
   equipment: Equipment,
-  { table, maxStarOf }: StarforceRules,
+  { table, maxStarOf, restoreOf }: StarforceRules,
 ): ItemDiagnosis[] =>
   equipment.items.map((item) => {
     const star = Number.isFinite(item.starforce) ? item.starforce : 0;
@@ -51,6 +58,16 @@ export const diagnoseItems = (
               fromStar: star,
               spareCost: 0,
             }),
+            recovery:
+              table[star].destroy > 0
+                ? compareRecovery({
+                    equipLevel: item.level,
+                    table,
+                    star,
+                    spareCost: 0,
+                    restore: restoreOf(item.level, star),
+                  })
+                : null,
           }
         : null,
       potential: item.potential,
@@ -88,7 +105,10 @@ export const buildReply = (
     lines.push(
       `• ${d.slot} ${d.name} (${d.level}제) ★${d.star}→★${d.star + 1}: ` +
         `1회 ${formatMeso(n.mesoPerAttempt)} 메소, 성공 ${formatPct(n.successPct)}, ` +
-        `파괴 ${formatPct(n.destroyPct)}, 기대 ${formatMeso(n.expectedMeso)} 메소`,
+        `파괴 ${formatPct(n.destroyPct)}, 기대 ${formatMeso(n.expectedMeso)} 메소` +
+        (n.recovery
+          ? `\n   ↳ 파괴 시 ${n.recovery.cheaper}가 유리 (확정복구 ${formatMeso(n.recovery.restoreCost)} / 12성 복구 ${formatMeso(n.recovery.noRestoreCost)})`
+          : ""),
     );
   }
 

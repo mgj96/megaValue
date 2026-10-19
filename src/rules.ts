@@ -33,7 +33,14 @@ const starforceRuleSchema = z.object({
   ),
   probabilities_0_to_14: z.record(rowSchema),
   probabilities_15_to_29: z.record(rowSchema),
+  restore: z.object({
+    table: z.record(z.record(z.tuple([z.number(), z.number()]))),
+  }),
 });
+
+const HUNDRED_MILLION = 100_000_000;
+
+export type RestoreCost = { spareCount: number; meso: number };
 
 export type StarforceRules = {
   version: string;
@@ -41,6 +48,8 @@ export type StarforceRules = {
   table: StarRow[];
   /** 장비 착용 레벨 → 최대 스타포스. 구간 밖이면 null. */
   maxStarOf: (level: number) => number | null;
+  /** 확정복구 재료. 필요한 대체 장비 수와 메소(원). 지원하지 않는 레벨·성이면 null. */
+  restoreOf: (level: number, star: number) => RestoreCost | null;
 };
 
 /** 스타포스 규칙을 읽고 검증한다. 행이 빠졌거나 확률 합이 100%가 아니면 던진다. */
@@ -65,6 +74,12 @@ export const loadStarforceRules = (): StarforceRules => {
   return {
     version: rule.version,
     table,
+    restoreOf: (level, star) => {
+      const [spareCount, eok] = rule.restore.table[level]?.[star] ?? [0, 0];
+      return spareCount > 0 && eok > 0
+        ? { spareCount, meso: Math.round(eok * HUNDRED_MILLION) }
+        : null;
+    },
     maxStarOf: (level) =>
       rule.max_star_by_level.find(
         ({ level_min, level_max }) =>
