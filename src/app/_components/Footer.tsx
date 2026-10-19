@@ -58,7 +58,11 @@ export const Footer = () => {
             <p className="text-sm text-default-500 leading-tight">
               Copyright 2022~ mesulive. All rights reserved.
               <br />
-              mesulive is not associated with NEXON Korea.
+              Modified by mgj96, 2026 (AGPL-3.0).
+              <br />
+              Data based on NEXON Open API.
+              <br />
+              This service is not associated with NEXON Korea.
               <br />
               Contact:{" "}
               <a
