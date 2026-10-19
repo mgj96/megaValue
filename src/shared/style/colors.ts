@@ -1,17 +1,17 @@
 import { type ColorScale } from "@heroui/react";
 
 export const primary: ColorScale = {
-  DEFAULT: "#FF8009",
-  50: "#FFF2E5",
-  100: "#FFE5CC",
-  200: "#FFCD9E",
-  300: "#FFB36B",
-  400: "#FF9838",
-  500: "#FF8009",
-  600: "#D16500",
-  700: "#9E4C00",
-  800: "#6B3400",
-  900: "#331900",
+  DEFAULT: "#18181B",
+  50: "#F4F4F5",
+  100: "#E4E4E7",
+  200: "#D4D4D8",
+  300: "#A1A1AA",
+  400: "#52525B",
+  500: "#18181B",
+  600: "#09090B",
+  700: "#09090B",
+  800: "#09090B",
+  900: "#000000",
 };
 
 export const secondary: ColorScale = {
